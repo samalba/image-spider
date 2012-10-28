@@ -19,6 +19,7 @@ def responder(content, content_type='application/json', status='200 OK'):
         content_type += '; charset=utf-8'
         response_headers.append(('Content-type', content_type))
 
+    # uWSGI raises a TypeError where content is None.
     if not content:
         content = ''
 

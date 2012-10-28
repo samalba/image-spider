@@ -8,13 +8,15 @@ from view import view
 
 class crawl:
 
-#TODO:Docstrings
     """
+    crawl is the controller for resource '/'. Issuing a GET returns usage
+    documentation and a basic web UI. Issuing a POST asks spiders to crawl.
     """
 
     def __init__(self):
         self.webpages_model = models.webpages()
         self.spiders_model = models.spiders()
+
 
     def get(self):
 
@@ -37,7 +39,7 @@ class crawl:
             postdata: form-urlencoded string must contain newline-separated URLs
                       assigned to a 'urls' variable.
 
-        Returns: HTTP 202 Accepted
+        Returns: HTTP 202 Accepted or 400 Bad Request.
         """
 
         if 'urls' in postdata:
@@ -68,6 +70,4 @@ class crawl:
             self.webpages_model.add(urls, depth=depth)
             self.spiders_model.deploy(urls)
 
-
-        #TODO
-        return responder('', None, '202 Accepted') #XXX Drop mimetype
+        return responder(None, None, '202 Accepted')
