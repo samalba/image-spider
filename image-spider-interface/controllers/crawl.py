@@ -67,7 +67,7 @@ class crawl:
                 if 900 > td.total_seconds() and depth <= webpage_info['depth']:
                     urls.remove(url)
 
-            self.webpages_model.add(urls, depth=depth)
-            self.spiders_model.deploy(urls)
+        self.webpages_model.add(urls, depth=depth)
+        self.spiders_model.deploy(urls)
 
         return responder(None, None, '202 Accepted')
