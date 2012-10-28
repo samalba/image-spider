@@ -1,0 +1,17 @@
+interface:
+    type: python
+    approot: image-spider-interface
+    config:
+        python_version: v3.2
+
+spider:
+    type: python-worker
+    approot: image-spider
+    config:
+        python_version: v3.2
+
+redis:
+    type: redis
+
+postgres:
+    type: postgresql

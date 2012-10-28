@@ -1,0 +1,24 @@
+-- vi: syntax=pgsql
+CREATE OR REPLACE FUNCTION get_tree(
+    IN in_parent_id integer,
+    OUT parent_id integer,
+    OUT child_id integer
+) AS $FN$
+
+    BEGIN
+
+    WITH RECURSIVE t(parent, child) AS (
+        SELECT parent, child
+            FROM webpage_relations
+            WHERE parent = in_parent_id
+        UNION ALL
+        SELECT t1.parent, t1.child
+            FROM t t0, webpage_relations t1
+            WHERE t0.child = t1.parent
+    )
+    SELECT parent, child FROM t
+        INTO parent_id, child_id;
+
+    END;
+
+$FN$ LANGUAGE PLPGSQL STABLE;

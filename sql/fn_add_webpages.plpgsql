@@ -1,0 +1,64 @@
+-- vi: syntax=pgsql
+-- Function add_webpages adds URLs to the webpages table, and tracks
+-- parent-child relationships from hyperlinks in the webpage_relations table.
+-- add_webpages is overloaded because initial requests have no known parent.
+
+CREATE OR REPLACE FUNCTION add_webpages(
+    IN child_urls text[]
+) RETURNS VOID AS $FN$
+
+    DECLARE child_url text;
+
+    BEGIN
+
+    FOREACH child_url IN ARRAY child_urls
+    LOOP
+        BEGIN
+            INSERT INTO webpages (url) VALUES (child_url);
+            EXCEPTION WHEN unique_violation THEN -- do nothing
+        END;
+    END LOOP;
+
+    END;
+
+$FN$ LANGUAGE PLPGSQL VOLATILE;
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+CREATE OR REPLACE FUNCTION add_webpages(
+    IN parent_url text,
+    IN child_urls text[]
+) RETURNS VOID AS $FN$
+
+    DECLARE child_url text;
+    DECLARE parent_id integer;
+    DECLARE child_id integer;
+
+    BEGIN
+
+    BEGIN
+        INSERT INTO webpages (url) VALUES (parent_url);
+        EXCEPTION WHEN unique_violation THEN -- do nothing
+    END;
+
+    SELECT id INTO parent_id FROM webpages WHERE webpages.url = parent_url;
+
+    FOREACH child_url IN ARRAY child_urls
+    LOOP
+        BEGIN
+            INSERT INTO webpages (url) VALUES (child_url);
+            EXCEPTION WHEN unique_violation THEN -- do nothing
+        END;
+        SELECT id INTO child_id FROM webpages WHERE webpages.url = child_url;
+        PERFORM parent FROM webpage_relations
+            WHERE webpage_relations.parent = parent_id
+            AND webpage_relations.child = child_id;
+        IF NOT FOUND THEN
+            INSERT INTO webpage_relations (parent, child)
+                VALUES (parent_id, child_id);
+        END IF;
+    END LOOP;
+
+    END;
+
+$FN$ LANGUAGE PLPGSQL VOLATILE;
