@@ -1,6 +1,7 @@
 # -*- coding: ascii -*-
 
 from . DataModel import DataModel
+import pickle
 
 class spiders(DataModel):
 
@@ -26,4 +27,4 @@ class spiders(DataModel):
         Returns: None
         """
 
-        self.redis.publish('deploy', urls)
+        self.redis.publish('deploy', pickle.dumps(urls))
