@@ -19,6 +19,9 @@ def responder(content, content_type='application/json', status='200 OK'):
         content_type += '; charset=utf-8'
         response_headers.append(('Content-type', content_type))
 
+    if not content:
+        content = ''
+
     def response(start_response):
 
         """
