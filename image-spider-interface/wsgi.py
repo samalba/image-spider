@@ -27,6 +27,7 @@ from urllib.parse import parse_qs
 # cd to app dir for package imports and for view-file reads.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 import controllers
+from http_error import http_error
 from responder import responder
 import tests
 from view import view
@@ -45,16 +46,17 @@ def application(env, start_response):
     """
     method = env['REQUEST_METHOD'].lower()
     controller_name = env['PATH_INFO'][1:] or 'crawl'
-    querystring = env['QUERY_STRING'] or None
+    querystring = parse_qs(env['QUERY_STRING']) or env['QUERY_STRING'] or None
     postdata = None
+
     if 'post' == method: # Read postdata.
         length = env['CONTENT_LENGTH']
         if length.isnumeric():
             length = int(length)
         else:
-            response = error('411 Length Required')
+            response = http_error('411 Length Required')
             return response(start_response)
-        postdata = parse_qs(env['wsgi.input'].read(length))
+        postdata = parse_qs(env['wsgi.input'].read(length).decode())
 
     # If the controller is registered in controllers/__init__.py, and it offers
     # a method that corresponds with the HTTP method in use, then request a
@@ -68,9 +70,9 @@ def application(env, start_response):
             else:
                 response = request(querystring) if querystring else request()
         else:
-            response = error('405 Method Not Allowed')
+            response = http_error('405 Method Not Allowed')
     else:
-        response = error('404 Not Found')
+        response = http_error('404 Not Found')
 
     # Return our HTTP response to uwsgi.
     return response(start_response)

@@ -4,18 +4,28 @@
 -- add_webpages is overloaded because initial requests have no known parent.
 
 CREATE OR REPLACE FUNCTION add_webpages(
-    IN child_urls text[]
-) RETURNS VOID AS $FN$
+    IN in_child_urls text[],
+    IN in_depth integer
+) RETURNS SETOF VOID AS $FN$
 
     DECLARE child_url text;
+    DECLARE found_depth integer;
 
     BEGIN
 
-    FOREACH child_url IN ARRAY child_urls
+    FOREACH child_url IN ARRAY in_child_urls
     LOOP
         BEGIN
-            INSERT INTO webpages (url) VALUES (child_url);
-            EXCEPTION WHEN unique_violation THEN -- do nothing
+            INSERT INTO webpages (url, depth) VALUES (child_url, in_depth);
+            EXCEPTION WHEN unique_violation THEN
+                SELECT depth INTO found_depth
+                    FROM webpages WHERE url = child_url;
+                IF in_depth > found_depth THEN
+                    UPDATE webpages
+                        SET webpages.depth = in_depth,
+                        webpages.completion_datetime = NULL
+                        WHERE url = child_url;
+                END IF;
         END;
     END LOOP;
 
@@ -26,9 +36,10 @@ $FN$ LANGUAGE PLPGSQL VOLATILE;
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 CREATE OR REPLACE FUNCTION add_webpages(
-    IN parent_url text,
-    IN child_urls text[]
-) RETURNS VOID AS $FN$
+    IN in_parent_url text,
+    IN in_child_urls text[],
+    IN in_depth integer
+) RETURNS SETOF VOID AS $FN$
 
     DECLARE child_url text;
     DECLARE parent_id integer;
@@ -37,13 +48,13 @@ CREATE OR REPLACE FUNCTION add_webpages(
     BEGIN
 
     BEGIN
-        INSERT INTO webpages (url) VALUES (parent_url);
+        INSERT INTO webpages (url) VALUES (in_parent_url);
         EXCEPTION WHEN unique_violation THEN -- do nothing
     END;
 
-    SELECT id INTO parent_id FROM webpages WHERE webpages.url = parent_url;
+    SELECT id INTO parent_id FROM webpages WHERE webpages.url = in_parent_url;
 
-    FOREACH child_url IN ARRAY child_urls
+    FOREACH child_url IN ARRAY in_child_urls
     LOOP
         BEGIN
             INSERT INTO webpages (url) VALUES (child_url);

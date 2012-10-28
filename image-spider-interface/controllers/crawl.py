@@ -1,5 +1,7 @@
 # -*- coding: ascii -*-
 
+import datetime
+from http_error import http_error
 import models
 from responder import responder
 from view import view
@@ -11,12 +13,14 @@ class crawl:
     """
 
     def __init__(self):
-        self.webpages = models.webpages()
+        self.webpages_model = models.webpages()
+        self.spiders_model = models.spiders()
 
     def get(self):
 
         """
         """
+        #TODO:docstring
 
         demo_view = view('demo.htm')
         return responder(demo_view, 'text/html')
@@ -25,36 +29,45 @@ class crawl:
     def post(self, querystring, postdata):
 
         """
+        Posting to crawl (AKA /) requests spider(s) to crawl each of the
+        specified webpages.
+
+        Arguments:
+            querystring: Optional string depth=n, where the default is 2.
+            postdata: form-urlencoded string must contain newline-separated URLs
+                      assigned to a 'urls' variable.
+
+        Returns: HTTP 202 Accepted
         """
 
-        print(postdata)
-        print(postdata[b'urls'])
-        url='http://example.rom'#XXX
-        depth=2#XXX
-        self.webpages.add([url])#XXX
+        if 'urls' in postdata:
+            urls = postdata['urls'][0].splitlines()
+        else:
+            return http_error('400 Bad Request')
 
-        #TODO:For each URL
-#             if websites.get(url).status == 'processing':
+        qs = querystring
+        if qs and 'depth' in qs and qs['depth'][0].isnumeric():
+            depth = int(qs['depth'][0])
+        else:
+            depth = 0
 
-#XXX XXX XXX
-# 1. Add a URL to crawl add(depth) -- we add(2) by default.
-# 2. Is the URL already listed with a 'processing' state? If so:
-#     Does the URL have a depth of specified or larger?
-#         If so, return.
-#         Otherwise, stop that spider. Update the depth. Re-call add().
-# 3. Has the URL already been parsed within the last 15 minutes? If so, return.
-# 4. Are there any crawlers inactive? If not then add one.
-# 5. Alert the first inactive crawler that a URL has been added.
-# 6. Crawler updates state to 'processing'
-# 7. Crawler parses resource at URL for images and links
-# 8. If depth is greater than 0:
-#     - Crawler adds URLs from each link, to return to Step 1.
-#     - Crawler updates children with their foreign keys.
-#     - Sounds like a stored function.
-# 9. Crawler stores image addresses related to URL.
-# 10. Crawler updates the state to 'complete' and sets the completion_datetime.
-#XXX XXX XXX
+        for url in urls:
+            status = self.webpages_model.get_status(url)
+            webpage_info = self.webpages_model.get_webpage_info(url)
+
+            if 'processing' == status and depth > webpage_info['depth']:
+                self.spiders_model.stop(url)
+
+            elif webpage_info['completion_datetime']:
+                # Ignore webpages with good depth crawled less than 15 min ago.
+                now = datetime.datetime.now()
+                td = now - webpage_info['completion_datetime']
+                if 900 > td.total_seconds() and depth <= webpage_info['depth']:
+                    urls.remove(url)
+
+            self.webpages_model.add(urls, depth=depth)
+            self.spiders_model.deploy(urls)
 
 
         #TODO
-        return responder('', 'text/html', '202 Accepted') #XXX Drop mimetype
+        return responder('', None, '202 Accepted') #XXX Drop mimetype

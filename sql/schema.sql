@@ -42,22 +42,31 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 SET search_path = public, pg_catalog;
 
 --
--- Name: add_webpages(text[]); Type: FUNCTION; Schema: public; Owner: bkaplan
+-- Name: add_webpages(text[], integer); Type: FUNCTION; Schema: public; Owner: bkaplan
 --
 
-CREATE FUNCTION add_webpages(child_urls text[]) RETURNS void
+CREATE FUNCTION add_webpages(in_child_urls text[], in_depth integer) RETURNS SETOF void
     LANGUAGE plpgsql
     AS $$
 
     DECLARE child_url text;
+    DECLARE found_depth integer;
 
     BEGIN
 
-    FOREACH child_url IN ARRAY child_urls
+    FOREACH child_url IN ARRAY in_child_urls
     LOOP
         BEGIN
-            INSERT INTO webpages (url) VALUES (child_url);
-            EXCEPTION WHEN unique_violation THEN -- do nothing
+            INSERT INTO webpages (url, depth) VALUES (child_url, in_depth);
+            EXCEPTION WHEN unique_violation THEN
+                SELECT depth INTO found_depth
+                    FROM webpages WHERE url = child_url;
+                IF in_depth > found_depth THEN
+                    UPDATE webpages
+                        SET webpages.depth = in_depth,
+                        webpages.completion_datetime = NULL
+                        WHERE url = child_url;
+                END IF;
         END;
     END LOOP;
 
@@ -66,13 +75,13 @@ CREATE FUNCTION add_webpages(child_urls text[]) RETURNS void
 $$;
 
 
-ALTER FUNCTION public.add_webpages(child_urls text[]) OWNER TO bkaplan;
+ALTER FUNCTION public.add_webpages(in_child_urls text[], in_depth integer) OWNER TO bkaplan;
 
 --
--- Name: add_webpages(text, text[]); Type: FUNCTION; Schema: public; Owner: bkaplan
+-- Name: add_webpages(text, text[], integer); Type: FUNCTION; Schema: public; Owner: bkaplan
 --
 
-CREATE FUNCTION add_webpages(parent_url text, child_urls text[]) RETURNS void
+CREATE FUNCTION add_webpages(in_parent_url text, in_child_urls text[], in_depth integer) RETURNS SETOF void
     LANGUAGE plpgsql
     AS $$
 
@@ -83,13 +92,13 @@ CREATE FUNCTION add_webpages(parent_url text, child_urls text[]) RETURNS void
     BEGIN
 
     BEGIN
-        INSERT INTO webpages (url) VALUES (parent_url);
+        INSERT INTO webpages (url) VALUES (in_parent_url);
         EXCEPTION WHEN unique_violation THEN -- do nothing
     END;
 
-    SELECT id INTO parent_id FROM webpages WHERE webpages.url = parent_url;
+    SELECT id INTO parent_id FROM webpages WHERE webpages.url = in_parent_url;
 
-    FOREACH child_url IN ARRAY child_urls
+    FOREACH child_url IN ARRAY in_child_urls
     LOOP
         BEGIN
             INSERT INTO webpages (url) VALUES (child_url);
@@ -110,7 +119,7 @@ CREATE FUNCTION add_webpages(parent_url text, child_urls text[]) RETURNS void
 $$;
 
 
-ALTER FUNCTION public.add_webpages(parent_url text, child_urls text[]) OWNER TO bkaplan;
+ALTER FUNCTION public.add_webpages(in_parent_url text, in_child_urls text[], in_depth integer) OWNER TO bkaplan;
 
 --
 -- Name: get_tree(integer); Type: FUNCTION; Schema: public; Owner: postgres
@@ -140,6 +149,27 @@ $$;
 
 
 ALTER FUNCTION public.get_tree(in_parent_id integer, OUT parent_id integer, OUT child_id integer) OWNER TO postgres;
+
+--
+-- Name: get_webpage_info(text); Type: FUNCTION; Schema: public; Owner: bkaplan
+--
+
+CREATE FUNCTION get_webpage_info(in_url text, OUT depth integer, OUT completion_datetime timestamp without time zone) RETURNS record
+    LANGUAGE plpgsql
+    AS $$
+
+    BEGIN
+
+    SELECT webpages.depth, webpages.completion_datetime
+        INTO depth, completion_datetime
+        FROM webpages WHERE webpages.url = in_url LIMIT 1;
+
+    END;
+
+$$;
+
+
+ALTER FUNCTION public.get_webpage_info(in_url text, OUT depth integer, OUT completion_datetime timestamp without time zone) OWNER TO bkaplan;
 
 SET default_tablespace = '';
 
@@ -209,7 +239,9 @@ ALTER TABLE public.webpage_relations OWNER TO image_spider;
 CREATE TABLE webpages (
     id integer NOT NULL,
     url text,
-    completion_datetime timestamp with time zone
+    depth integer DEFAULT 0 NOT NULL,
+    completion_datetime timestamp with time zone,
+    CONSTRAINT depth_must_be_nonnegative CHECK ((depth >= 0))
 );
 
 

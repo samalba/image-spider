@@ -3,7 +3,7 @@
 from responder import responder
 from view import view
 
-def error(status):
+def http_error(status):
 
     """
     Create an HTTP error response.

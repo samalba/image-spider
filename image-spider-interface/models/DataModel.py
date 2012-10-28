@@ -9,3 +9,4 @@ class DataModel:
         pq = 'pq://image_spider:p3nV7qE0bbHaC8n8i@localhost/image_spider'
         self.pg = postgresql.open(pq)
         self.redis = redis.StrictRedis(host='localhost', port=6379, db=0)
+        self.pubsub = redis.StrictRedis(host='localhost', port=6379, db=0)

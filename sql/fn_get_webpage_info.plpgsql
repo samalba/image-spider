@@ -1,0 +1,16 @@
+-- vi: syntax=pgsql
+CREATE OR REPLACE FUNCTION get_webpage_info (
+    IN in_url text,
+    OUT depth integer,
+    OUT completion_datetime timestamp
+) AS $FN$
+
+    BEGIN
+
+    SELECT webpages.depth, webpages.completion_datetime
+        INTO depth, completion_datetime
+        FROM webpages WHERE webpages.url = in_url LIMIT 1;
+
+    END;
+
+$FN$ LANGUAGE PLPGSQL VOLATILE;
