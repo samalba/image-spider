@@ -37,10 +37,52 @@ class DeploymentManager:
         depth += 1
         index += 1
 
-        status = {'completed': index,
-                  'total': total,
-                  'percent': int(index / total * 1000) / 10,
-                  'at_depth': depth}
+        # Set default values for where previous jobstatus has no effect.
+        total_depth = depth
+        total_pages_completed = index
+        total_pages_queued = total
+        pages_completed_at_greater_depth = 0
+
+        # If we already have a previous jobstatus, then build upon it.
+        previous_jobstatus = data.redis.get('jobstatus:' + str(job_id))
+        if previous_jobstatus:
+
+            previous_jobstatus = pickle.loads(previous_jobstatus)
+
+            total_depth = previous_jobstatus['total_depth']
+
+            pages_completed_at_greater_depth = \
+                previous_jobstatus['pages_completed_at_greater_depth']
+
+            total_pages_completed = \
+                previous_jobstatus['pages_completed_at_greater_depth'] + \
+                index
+
+            total_pages_queued = \
+                previous_jobstatus['pages_completed_at_greater_depth'] + \
+                total
+
+            if previous_jobstatus['current_depth'] > depth:
+
+                pages_completed_at_greater_depth = \
+                    previous_jobstatus['total_pages_completed']
+
+                total_pages_completed = \
+                    previous_jobstatus['pages_completed_at_greater_depth'] + \
+                    previous_jobstatus['pages_completed_at_depth']
+
+                total_pages_queued = \
+                    previous_jobstatus['total_pages_queued']
+
+        status = {'total_depth': total_depth,
+                  'total_pages_completed': total_pages_completed,
+                  'total_pages_queued': total_pages_queued,
+                  'pages_completed_at_depth': index,
+                  'pages_completed_at_greater_depth':
+                                            pages_completed_at_greater_depth,
+                  'total_pages_at_depth': total,
+                  'depth_percent_complete': int(index / total * 1000) / 10,
+                  'current_depth': depth}
 
         data.redis.set('jobstatus:' + str(job_id), pickle.dumps(status))
 
