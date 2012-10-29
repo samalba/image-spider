@@ -1,0 +1,27 @@
+-- vi: syntax=pgsql
+
+CREATE OR REPLACE FUNCTION relate_image (
+    IN in_webpage_url text,
+    IN in_image_url text
+) RETURNS SETOF VOID AS $FN$
+
+    DECLARE image_id integer;
+    DECLARE webpage_id integer;
+
+    BEGIN
+
+    BEGIN
+        INSERT INTO images (url) VALUES (in_image_url)
+            RETURNING id INTO image_id;
+        EXCEPTION WHEN unique_violation THEN
+            SELECT id INTO image_id FROM images WHERE images.url = in_image_url;
+    END;
+
+    SELECT id INTO webpage_id FROM webpages WHERE webpages.url = in_webpage_url;
+
+    INSERT INTO image_relations (image_id, webpage_id)
+        VALUES (image_id, webpage_id);
+
+    END;
+
+$FN$ LANGUAGE PLPGSQL VOLATILE;

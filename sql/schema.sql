@@ -93,7 +93,7 @@ CREATE FUNCTION add_webpages(in_parent_url text, in_child_urls text[], in_depth 
 
     BEGIN
         INSERT INTO webpages (url) VALUES (in_parent_url);
-        EXCEPTION WHEN unique_violation THEN -- do nothing
+        EXCEPTION WHEN unique_violation THEN -- do nothing.
     END;
 
     SELECT id INTO parent_id FROM webpages WHERE webpages.url = in_parent_url;
@@ -101,8 +101,11 @@ CREATE FUNCTION add_webpages(in_parent_url text, in_child_urls text[], in_depth 
     FOREACH child_url IN ARRAY in_child_urls
     LOOP
         BEGIN
-            INSERT INTO webpages (url) VALUES (child_url);
-            EXCEPTION WHEN unique_violation THEN -- do nothing
+            INSERT INTO webpages (url, depth) VALUES (child_url, in_depth);
+            EXCEPTION WHEN unique_violation THEN
+                UPDATE webpages SET depth = in_depth
+                    WHERE webpages.url = child_url
+                    AND webpages.depth < in_depth;
         END;
         SELECT id INTO child_id FROM webpages WHERE webpages.url = child_url;
         PERFORM parent FROM webpage_relations
@@ -120,6 +123,26 @@ $$;
 
 
 ALTER FUNCTION public.add_webpages(in_parent_url text, in_child_urls text[], in_depth integer) OWNER TO bkaplan;
+
+--
+-- Name: complete_crawl(text); Type: FUNCTION; Schema: public; Owner: bkaplan
+--
+
+CREATE FUNCTION complete_crawl(in_url text) RETURNS SETOF void
+    LANGUAGE plpgsql
+    AS $$
+
+    BEGIN
+
+    UPDATE webpages SET completion_datetime = now()
+        WHERE webpages.url = in_url;
+
+    END;
+
+$$;
+
+
+ALTER FUNCTION public.complete_crawl(in_url text) OWNER TO bkaplan;
 
 --
 -- Name: get_tree(integer); Type: FUNCTION; Schema: public; Owner: postgres
@@ -170,6 +193,38 @@ $$;
 
 
 ALTER FUNCTION public.get_webpage_info(in_url text, OUT depth integer, OUT completion_datetime timestamp without time zone) OWNER TO bkaplan;
+
+--
+-- Name: relate_image(text, text); Type: FUNCTION; Schema: public; Owner: bkaplan
+--
+
+CREATE FUNCTION relate_image(in_webpage_url text, in_image_url text) RETURNS SETOF void
+    LANGUAGE plpgsql
+    AS $$
+
+    DECLARE image_id integer;
+    DECLARE webpage_id integer;
+
+    BEGIN
+
+    BEGIN
+        INSERT INTO images (url) VALUES (in_image_url)
+            RETURNING id INTO image_id;
+        EXCEPTION WHEN unique_violation THEN
+            SELECT id INTO image_id FROM images WHERE images.url = in_image_url;
+    END;
+
+    SELECT id INTO webpage_id FROM webpages WHERE webpages.url = in_webpage_url;
+
+    INSERT INTO image_relations (image_id, webpage_id)
+        VALUES (image_id, webpage_id);
+
+    END;
+
+$$;
+
+
+ALTER FUNCTION public.relate_image(in_webpage_url text, in_image_url text) OWNER TO bkaplan;
 
 SET default_tablespace = '';
 

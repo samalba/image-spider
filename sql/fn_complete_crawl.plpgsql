@@ -1,0 +1,14 @@
+-- vi: syntax=pgsql
+
+CREATE OR REPLACE FUNCTION complete_crawl (
+    IN in_url text
+) RETURNS SETOF VOID AS $FN$
+
+    BEGIN
+
+    UPDATE webpages SET completion_datetime = now()
+        WHERE webpages.url = in_url;
+
+    END;
+
+$FN$ LANGUAGE PLPGSQL VOLATILE;

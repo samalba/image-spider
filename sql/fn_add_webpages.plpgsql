@@ -2,8 +2,10 @@
 -- Function add_webpages adds URLs to the webpages table, and tracks
 -- parent-child relationships from hyperlinks in the webpage_relations table.
 -- add_webpages is overloaded because initial requests have no known parent.
+-- The in_depth value applies to child URLs only, even when a parent has been
+-- specified. It is expected that the parent depth was previously set.
 
-CREATE OR REPLACE FUNCTION add_webpages(
+CREATE OR REPLACE FUNCTION add_webpages (
     IN in_child_urls text[],
     IN in_depth integer
 ) RETURNS SETOF VOID AS $FN$
@@ -35,7 +37,7 @@ $FN$ LANGUAGE PLPGSQL VOLATILE;
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-CREATE OR REPLACE FUNCTION add_webpages(
+CREATE OR REPLACE FUNCTION add_webpages (
     IN in_parent_url text,
     IN in_child_urls text[],
     IN in_depth integer
@@ -57,8 +59,11 @@ CREATE OR REPLACE FUNCTION add_webpages(
     FOREACH child_url IN ARRAY in_child_urls
     LOOP
         BEGIN
-            INSERT INTO webpages (url) VALUES (child_url);
-            EXCEPTION WHEN unique_violation THEN -- do nothing
+            INSERT INTO webpages (url, depth) VALUES (child_url, in_depth);
+            EXCEPTION WHEN unique_violation THEN
+                UPDATE webpages SET depth = in_depth
+                    WHERE webpages.url = child_url
+                    AND webpages.depth < in_depth;
         END;
         SELECT id INTO child_id FROM webpages WHERE webpages.url = child_url;
         PERFORM parent FROM webpage_relations
