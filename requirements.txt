@@ -1,2 +1,2 @@
-py-postgresql==1.1.0
-redis==2.7.1
+py-postgresql
+redis
