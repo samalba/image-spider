@@ -24,3 +24,8 @@ class webpages(DataModel):
     def get_webpage_info(self, url):
         get_webpage_info = self.pg.proc('get_webpage_info(text)')
         return get_webpage_info(url)
+
+
+    def register_job(self, job_id, urls):
+        if urls:
+            self.redis.sadd('job' + str(job_id), *urls)

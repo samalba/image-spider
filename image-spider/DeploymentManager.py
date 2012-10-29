@@ -42,7 +42,7 @@ class DeploymentManager:
                   'percent': int(index / total * 1000) / 10,
                   'at_depth': depth}
 
-        data.redis.set('jobstatus:' + job_id, pickle.dumps(status))
+        data.redis.set('jobstatus:' + str(job_id), pickle.dumps(status))
 
 
     def _less_than_15_min_ago(self, when):
@@ -64,7 +64,7 @@ class DeploymentManager:
         return 900 > td.total_seconds()
 
 
-    def _fetch_and_parse(self, url, depth):
+    def _fetch_and_parse(self, job_id, url, depth):
 
         """
         Fetch a webpage and parse it for links and images.
@@ -92,10 +92,12 @@ class DeploymentManager:
         data.complete_crawl(url)
 
         if 0 < depth:
-            data.redis.publish('deploy', pickle.dumps(html_parser.hyperlinks))
+            if html_parser.hyperlinks:
+                data.redis.sadd('job' + str(job_id), *html_parser.hyperlinks)
+            data.redis.publish('deploy', pickle.dumps(job_id))
 
 
-    def _deploy(self):
+    def _deploy(self, job_id):
 
         """
         Deploy a spider to crawl the web. Use the DeploymentManager's enqueue
@@ -134,20 +136,19 @@ class DeploymentManager:
 
             depth = webpage_info['depth'] - 1
 
-            #TODO: url on next line should be job_id
-            self._set_job_status(url, depth, index, len(queue_copy))
+            self._set_job_status(job_id, depth, index, len(queue_copy))
 
-            self._fetch_and_parse(url, depth)
+            self._fetch_and_parse(job_id, url, depth)
 
             time.sleep(self.delay)
 
         if len(self._queue):
-            self._deploy()
+            self._deploy(job_id)
         else:
             self._active = False
 
 
-    def enqueue(self, urls):
+    def enqueue(self, job_id):
 
         """
         Enqueue URLs for the spider to crawl.
@@ -158,9 +159,10 @@ class DeploymentManager:
         Returns: None
         """
 
+        urls = data.redis.smembers('job' + str(job_id))
         self._queue.extend(urls)
         if not self._active:
-            self._deploy()
+            self._deploy(job_id)
 
 
     def abort(self):

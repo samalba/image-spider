@@ -16,6 +16,8 @@ class crawl:
     def __init__(self):
         self.webpages_model = models.webpages()
         self.spiders_model = models.spiders()
+        jobs_model = models.jobs()
+        self.job_id = jobs_model.get_id()
 
 
     def get(self):
@@ -68,7 +70,9 @@ class crawl:
                 if 900 > td.total_seconds() and depth <= webpage_info['depth']:
                     urls.remove(url)
 
+        self.webpages_model.register_job(self.job_id, urls)
         self.webpages_model.add(urls, depth=depth)
-        self.spiders_model.deploy(urls)
+        self.spiders_model.deploy(self.job_id)
 
-        return responder(None, None, '202 Accepted')
+        crawl_view = view('crawl.json', {'job_id': self.job_id})
+        return responder(crawl_view, 'application/json', '202 Accepted')

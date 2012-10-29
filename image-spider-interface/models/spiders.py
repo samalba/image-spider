@@ -15,16 +15,17 @@ class spiders(DataModel):
         pass#TODO
 
 
-    def deploy(self, urls):
+    def deploy(self, job_id):
 
         """
         We expect one or more spider instances to be listening. Deploy them to
         crawl the specified URLs.
 
         Arguments:
-            urls: list of string URLs to crawl.
+            job_id: string job_id that's registered with a list of URLs to
+                    crawl.
 
         Returns: None
         """
 
-        self.redis.publish('deploy', pickle.dumps(urls))
+        self.redis.publish('deploy', pickle.dumps(job_id))
