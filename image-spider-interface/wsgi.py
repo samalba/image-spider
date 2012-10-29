@@ -7,25 +7,37 @@ License: MIT
 
 Image-Crawler crawls the web for images. See README.md for usage.
 
-Because this was written as a code challenge, no third-party libraries were
-used.
+Because this was written for a code challenge, I used as few third-party
+libraries as reasonable. Under normal circumstances I would probably at least
+have relied on an router framework. But given that this is a relatively simple
+application, it's acceptable.
 
-TODO: Describe more.
-    # REST methods should correspond to controller methods.
-    # the controller is requested as the http resource. our default controller
-    # is 'crawl'.
+Some general notes on the architecture:
 
-Dependencies:
+* REST methods should correspond to controller methods.
 
+* The default controller is 'crawl'.
+
+* This interface code is separate from the spider code. Multiple spiders can be
+  deployed simultaneously to share the workload.
+
+* I chose to use postgresql and redis even though neo4j would have been a more
+  appropriate choice for this app. But since neo4j support on dotCloud is still
+  alpha, and I've had a variety of deployment setbacks already, I decided to
+  stick with datastores I know will work. Switching to Neo4j would avoid the
+  need to paginate results.
+
+Dependencies: See requirements.txt.
 """
-#TODO:above
 
 import os
 import signal
 from urllib.parse import parse_qs
+import sys
 
 # cd to app dir for package imports and for view-file reads.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
 import controllers
 from http_error import http_error
 from responder import responder
