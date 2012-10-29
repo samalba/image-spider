@@ -53,7 +53,8 @@ class crawl:
         else:
             depth = 0
 
-        for url in urls:
+        # Iterate through a copy of urls, since items may be removed from it.
+        for url in urls[:]:
             status = self.webpages_model.get_status(url)
             webpage_info = self.webpages_model.get_webpage_info(url)
 
