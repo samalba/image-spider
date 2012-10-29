@@ -13,14 +13,14 @@ from validate_url import validate_url
 class DeploymentManager:
 
     def __init__(self):
+        self.user_agent = 'Mozilla/5.0 (X11; Linux x86_64; rv:16.0) ' \
+                     'Gecko/20100101 Firefox/16.0'
+        self.delay = 5 # Seconds to sleep between requests for politeness.
         self._queue = []
         self._active = False
-        self.user_agent = 'Mozilla/5.0 (X11; Linux x86_64; rv:16.0) ' \
-                          'Gecko/20100101 Firefox/16.0'
-        self.delay = 5 # Seconds to sleep between requests for politeness.
 
 
-    def _set_job_status(job_id, depth, index, total):
+    def _set_job_status(self, job_id, depth, index, total):
 
         """
         Set the spider's completion status for the current job.
@@ -39,10 +39,60 @@ class DeploymentManager:
 
         status = {'completed': index,
                   'total': total,
-                  'percent': int(index / total * 1000) / 10
+                  'percent': int(index / total * 1000) / 10,
                   'at_depth': depth}
 
         data.redis.set('jobstatus:' + job_id, pickle.dumps(status))
+
+
+    def _less_than_15_min_ago(self, when):
+
+        """
+        Determine if a time was less than 15 minutes ago.
+
+        Arguments:
+            when: datetime to check.
+
+        Returns: boolean truth value.
+        """
+
+        if not when:
+            return False
+
+        now = datetime.datetime.now()
+        td = now - when
+        return 900 > td.total_seconds()
+
+
+    def _fetch_and_parse(self, url, depth):
+
+        """
+        Fetch a webpage and parse it for links and images.
+
+        Arguments:
+            url: string URL.
+            depth: integer current depth.
+
+        Returns: None.
+        """
+
+        html_parser = MyHtmlParser(url)
+        request_headers = {'User-Agent': self.user_agent}
+        request = urllib_Request(url, headers=request_headers)
+
+        try:
+            webpage = urlopen(request).read().decode()
+        except (HTTPError, URLError, UnicodeDecodeError) as error:
+            data.redis.set(url, 'failed')
+            return
+
+        html_parser.feed(webpage)
+        data.add_webpages(url, html_parser.hyperlinks, depth)
+        data.redis.set(url, 'complete')
+        data.complete_crawl(url)
+
+        if 0 < depth:
+            data.redis.publish('deploy', pickle.dumps(html_parser.hyperlinks))
 
 
     def _deploy(self):
@@ -60,25 +110,21 @@ class DeploymentManager:
         self._active = True
         queue_copy = self._queue[:]
         for index, url in enumerate(queue_copy):
+
             self._queue.remove(url)
+            validated_url = validate_url(url)
+            url = validated_url['url']
+            webpage_info = data.get_webpage_info(url)
 
             if not claim(url):
                 continue
 
-            validated_url = validate_url(url)
-
             if not validated_url['valid']:
                 continue
 
-            url = validated_url['url']
-            webpage_info = data.get_webpage_info(url)
-
             # Ignore webpages crawled less than 15 min ago.
-            if webpage_info['completion_datetime']:
-                now = datetime.datetime.now()
-                td = now - webpage_info['completion_datetime']
-                if 900 > td.total_seconds():
-                    continue
+            if self._less_than_15_min_ago(webpage_info['completion_datetime']):
+                continue
 
             # Database latency means depth is occasionally still unavailable.
             if not webpage_info['depth']:
@@ -89,28 +135,11 @@ class DeploymentManager:
             depth = webpage_info['depth'] - 1
 
             #TODO: url on next line should be job_id
-            _set_job_status(url, depth, index, len(queue_copy))
+            self._set_job_status(url, depth, index, len(queue_copy))
 
-            html_parser = MyHtmlParser(url)
-            request = urllib_Request(url,
-                                     headers={'User-Agent': self.user_agent})
-            try:
-                webpage = urlopen(request).read().decode()
-            except (HTTPError, URLError, UnicodeDecodeError) as error:
-                #TODO:logging.error(error)
-                data.redis.set(url, 'failed')
-                continue
-
-            html_parser.feed(webpage)
-            data.add_webpages(url, html_parser.hyperlinks, depth)
-            data.redis.set(url, 'complete')
-            data.complete_crawl(url)
+            self._fetch_and_parse(url, depth)
 
             time.sleep(self.delay)
-
-            if 0 < depth:
-                data.redis.publish('deploy',
-                                   pickle.dumps(html_parser.hyperlinks))
 
         if len(self._queue):
             self._deploy()
