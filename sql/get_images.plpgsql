@@ -1,0 +1,16 @@
+-- vi: syntax=pgsql
+CREATE OR REPLACE FUNCTION get_images (
+    webpage_ids integer[]
+) RETURNS TABLE (
+    url text
+) AS $FN$
+
+    BEGIN
+
+    RETURN QUERY SELECT images.url FROM images WHERE id IN (
+        SELECT image_relations.image_id FROM image_relations
+        WHERE image_relations.webpage_id = ANY (webpage_ids));
+
+    END;
+
+$FN$ LANGUAGE PLPGSQL VOLATILE;

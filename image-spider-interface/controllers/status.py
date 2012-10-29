@@ -43,6 +43,8 @@ class status:
 
         job_status = json.dumps(self.jobs_model.get_status(job_id))
 
+        #TODO:Where url is specified, webpages_model.get_status and get_tree.
+
         status_view = view('status.json', {'url': url,
                                            'job_status': job_status})
         return responder(status_view)

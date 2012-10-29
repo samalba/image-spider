@@ -26,6 +26,7 @@ class crawl:
         """
         #TODO:docstring
 
+        #TODO:Build demo webpage.
         demo_view = view('demo.htm')
         return responder(demo_view, 'text/html')
 

@@ -1,13 +1,15 @@
 -- vi: syntax=pgsql
 CREATE OR REPLACE FUNCTION get_tree(
-    IN in_parent_id integer,
-    OUT parent_id integer,
-    OUT child_id integer
+    in_parent_id integer,
+    in_limit integer
+) RETURNS TABLE (
+    parent_id integer,
+    child_id integer
 ) AS $FN$
 
     BEGIN
 
-    WITH RECURSIVE t(parent, child) AS (
+    RETURN QUERY WITH RECURSIVE t(parent, child) AS (
         SELECT parent, child
             FROM webpage_relations
             WHERE parent = in_parent_id
@@ -17,7 +19,7 @@ CREATE OR REPLACE FUNCTION get_tree(
             WHERE t0.child = t1.parent
     )
     SELECT parent, child FROM t
-        INTO parent_id, child_id;
+    LIMIT in_limit;
 
     END;
 

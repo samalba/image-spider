@@ -28,4 +28,5 @@ class webpages(DataModel):
 
     def register_job(self, job_id, urls):
         if urls:
-            self.redis.sadd('job' + str(job_id), *urls)
+            self.redis.sadd('job' + str(job_id), *urls) # This gets appened.
+            self.redis.sadd('job' + str(job_id) + ':init', *urls)

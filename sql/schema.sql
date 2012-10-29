@@ -145,16 +145,37 @@ $$;
 ALTER FUNCTION public.complete_crawl(in_url text) OWNER TO bkaplan;
 
 --
--- Name: get_tree(integer); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: get_images(integer[]); Type: FUNCTION; Schema: public; Owner: bkaplan
 --
 
-CREATE FUNCTION get_tree(in_parent_id integer, OUT parent_id integer, OUT child_id integer) RETURNS record
+CREATE FUNCTION get_images(webpage_ids integer[]) RETURNS TABLE(url text)
+    LANGUAGE plpgsql
+    AS $$
+
+    BEGIN
+
+    RETURN QUERY SELECT images.url FROM images WHERE id IN (
+        SELECT image_relations.image_id FROM image_relations
+        WHERE image_relations.webpage_id = ANY (webpage_ids));
+
+    END;
+
+$$;
+
+
+ALTER FUNCTION public.get_images(webpage_ids integer[]) OWNER TO bkaplan;
+
+--
+-- Name: get_tree(integer, integer); Type: FUNCTION; Schema: public; Owner: bkaplan
+--
+
+CREATE FUNCTION get_tree(in_parent_id integer, in_limit integer) RETURNS TABLE(parent_id integer, child_id integer)
     LANGUAGE plpgsql STABLE
     AS $$
 
     BEGIN
 
-    WITH RECURSIVE t(parent, child) AS (
+    RETURN QUERY WITH RECURSIVE t(parent, child) AS (
         SELECT parent, child
             FROM webpage_relations
             WHERE parent = in_parent_id
@@ -164,27 +185,27 @@ CREATE FUNCTION get_tree(in_parent_id integer, OUT parent_id integer, OUT child_
             WHERE t0.child = t1.parent
     )
     SELECT parent, child FROM t
-        INTO parent_id, child_id;
+    LIMIT in_limit;
 
     END;
 
 $$;
 
 
-ALTER FUNCTION public.get_tree(in_parent_id integer, OUT parent_id integer, OUT child_id integer) OWNER TO postgres;
+ALTER FUNCTION public.get_tree(in_parent_id integer, in_limit integer) OWNER TO bkaplan;
 
 --
 -- Name: get_webpage_info(text); Type: FUNCTION; Schema: public; Owner: bkaplan
 --
 
-CREATE FUNCTION get_webpage_info(in_url text, OUT depth integer, OUT completion_datetime timestamp without time zone) RETURNS record
+CREATE FUNCTION get_webpage_info(in_url text, OUT id integer, OUT depth integer, OUT completion_datetime timestamp without time zone) RETURNS record
     LANGUAGE plpgsql
     AS $$
 
     BEGIN
 
-    SELECT webpages.depth, webpages.completion_datetime
-        INTO depth, completion_datetime
+    SELECT webpages.id, webpages.depth, webpages.completion_datetime
+        INTO id, depth, completion_datetime
         FROM webpages WHERE webpages.url = in_url LIMIT 1;
 
     END;
@@ -192,7 +213,7 @@ CREATE FUNCTION get_webpage_info(in_url text, OUT depth integer, OUT completion_
 $$;
 
 
-ALTER FUNCTION public.get_webpage_info(in_url text, OUT depth integer, OUT completion_datetime timestamp without time zone) OWNER TO bkaplan;
+ALTER FUNCTION public.get_webpage_info(in_url text, OUT id integer, OUT depth integer, OUT completion_datetime timestamp without time zone) OWNER TO bkaplan;
 
 --
 -- Name: relate_image(text, text); Type: FUNCTION; Schema: public; Owner: bkaplan

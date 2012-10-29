@@ -1,14 +1,15 @@
 -- vi: syntax=pgsql
 CREATE OR REPLACE FUNCTION get_webpage_info (
     IN in_url text,
+    OUT id integer,
     OUT depth integer,
     OUT completion_datetime timestamp
 ) AS $FN$
 
     BEGIN
 
-    SELECT webpages.depth, webpages.completion_datetime
-        INTO depth, completion_datetime
+    SELECT webpages.id, webpages.depth, webpages.completion_datetime
+        INTO id, depth, completion_datetime
         FROM webpages WHERE webpages.url = in_url LIMIT 1;
 
     END;
