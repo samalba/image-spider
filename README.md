@@ -36,6 +36,8 @@ Shortcomings:
 Possible Improvements:
 
 * See the following TODO list for starters. I'll add more here as I think of it.
+* A /jobs resource for listing all active jobs. It would be useful if the web
+  interface provided a "stop" link for each of them.
 
 TODO:
 

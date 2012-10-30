@@ -177,11 +177,8 @@ class DeploymentManager:
                 continue
 
             depth = webpage_info['depth'] - 1
-
             self._set_job_status(job_id, depth, index, len(queue_copy))
-
             self._fetch_and_parse(job_id, url, depth)
-
             time.sleep(self.delay)
 
         if len(self._queue):
