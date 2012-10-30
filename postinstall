@@ -1,0 +1,2 @@
+#!/bin/sh
+cp environment.json current/

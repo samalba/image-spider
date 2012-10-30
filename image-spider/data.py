@@ -10,10 +10,22 @@ class _Storefront:
         import postgresql
         import redis
 
-        pq = 'pq://image_spider:p3nV7qE0bbHaC8n8i@localhost/image_spider'
+        conf = json.loads(open('../environment.json').read())
+
+        pq = 'pq://{0}:{1}@{2}:{3}/image_spider'
+        pq = pq.format(conf['DOTCLOUD_POSTGRES_SQL_LOGIN'],
+                       conf['DOTCLOUD_POSTGRES_SQL_PASSWORD'],
+                       conf['DOTCLOUD_POSTGRES_SQL_HOST'],
+                       conf['DOTCLOUD_POSTGRES_SQL_PORT'])
+
+        redis_credentials = {'host': conf['DOTCLOUD_REDIS_REDIS_HOST'],
+                             'port': int(conf['DOTCLOUD_REDIS_REDIS_PORT']),
+                             'password': conf['DOTCLOUD_REDIS_REDIS_PASSWORD'],
+                             'db': 0}
+
         self.pg = postgresql.open(pq)
-        self.redis = redis.StrictRedis(host='localhost', port=6379, db=0)
-        pubsub = redis.StrictRedis(host='localhost', port=6379, db=0)
+        self.redis = redis.StrictRedis(**redis_credentials)
+        pubsub = redis.StrictRedis(**redis_credentials)
         self.pubsub = pubsub.pubsub()
 
         setattr(self, 'add_webpages',
