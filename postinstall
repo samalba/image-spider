@@ -1,2 +1,2 @@
 #!/bin/sh
-cp environment.json current/
+cp /home/dotcloud/environment.json /home/dotcloud/current/
