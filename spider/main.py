@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: ascii -*-
 
+# Append the path where dotCloud keeps its modules.
+sys.path.append('/opt/ve/3.2/lib/python3.2/site-packages')
+
 from data import data
 from DeploymentManager import DeploymentManager
 import pickle

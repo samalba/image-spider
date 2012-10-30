@@ -39,7 +39,7 @@ import sys
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 # Explicitly append this current.
 sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
-# Append the path where dotCloud keeps its modules, since cd'ing loses them.
+# Append the path where dotCloud keeps its modules.
 sys.path.append('/opt/ve/3.2/lib/python3.2/site-packages')
 import controllers
 from http_error import http_error
