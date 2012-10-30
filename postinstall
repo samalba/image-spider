@@ -1,2 +1,0 @@
-#!/bin/sh
-cp /home/dotcloud/environment.json /home/dotcloud/current/
