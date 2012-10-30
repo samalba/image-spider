@@ -3,6 +3,40 @@ About
 
 Image-Spider is a web crawler that seeks out images.
 
+Because this was written for a code challenge, I used as few third-party
+libraries as reasonable. My directions were to use only "dotcloud services", and
+I think I've stuck to that fairly well.
+
+Design Decisions:
+
+The interface app is basic MVC with a REST interface and a very simple web
+front-end. The spider app is a rather small amount of code, so I haven't imposed
+any conventional architecture on it.
+
+Under normal circumstances I would probably at least have relied on an router
+framework for the MVC. But given that this is a relatively simple application,
+it's acceptable.
+
+Some general notes on the architecture:
+
+* This interface code is separate from the spider code. Multiple spiders can be
+  deployed simultaneously to share the workload.
+
+* REST methods correspond to controller methods.
+
+Shortcomings:
+
+* I chose to use postgresql even though neo4j would have been a more appropriate
+  choice for this app. It would have made the app more responsive, and its data
+  better structured. But since neo4j support on dotCloud is still alpha, and
+  I've had a variety of deployment setbacks already, I decided to stick with
+  datastores I know will work. Switching to Neo4j would avoid the need to
+  paginate results.
+
+Possible Improvements:
+
+* See the following TODO list for starters. I'll add more here as I think of it.
+
 TODO:
 
 * The crawler (worker) works for me locally, but not yet on dotCloud.
@@ -11,9 +45,7 @@ TODO:
   URLs, not job ids. They should be associated with both, in order to reteive
   all of them, although in this case pagination may still be desirable. Another,
   more appropriate, solution for eliminating the need for pagination would be to
-  use neo4j instead of postgres to store the tree. This is what I wanted to do
-  at first, but dotCloud only offers alpha support for it, and getting it up and
-  running seemed like it might take too much time.
+  use neo4j instead of postgres to store the tree.
 * /result DELETE is unimplemented. It should require HTTP auth.
 * /status GET should support url parameter.
 * /stop POST is unimplemented.

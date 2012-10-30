@@ -5,27 +5,7 @@ Image-Crawler
 Copyright (c) 2012 Bryan Kaplan <bkaplan@botker.com>
 License: MIT
 
-Image-Crawler crawls the web for images. See README.md for usage.
-
-Because this was written for a code challenge, I used as few third-party
-libraries as reasonable. Under normal circumstances I would probably at least
-have relied on an router framework. But given that this is a relatively simple
-application, it's acceptable.
-
-Some general notes on the architecture:
-
-* REST methods should correspond to controller methods.
-
-* The default controller is 'crawl'.
-
-* This interface code is separate from the spider code. Multiple spiders can be
-  deployed simultaneously to share the workload.
-
-* I chose to use postgresql and redis even though neo4j would have been a more
-  appropriate choice for this app. But since neo4j support on dotCloud is still
-  alpha, and I've had a variety of deployment setbacks already, I decided to
-  stick with datastores I know will work. Switching to Neo4j would avoid the
-  need to paginate results.
+Image-Crawler crawls the web for images. See README.md for details.
 
 Dependencies: See requirements.txt.
 """
