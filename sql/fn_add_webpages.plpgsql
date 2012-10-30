@@ -15,7 +15,7 @@ CREATE OR REPLACE FUNCTION add_webpages (
 
     BEGIN
 
-    FOREACH child_url IN ARRAY in_child_urls
+    FOR child_url IN SELECT unnest(in_child_urls)
     LOOP
         BEGIN
             INSERT INTO webpages (url, depth) VALUES (child_url, in_depth);
@@ -56,7 +56,7 @@ CREATE OR REPLACE FUNCTION add_webpages (
 
     SELECT id INTO parent_id FROM webpages WHERE webpages.url = in_parent_url;
 
-    FOREACH child_url IN ARRAY in_child_urls
+    FOR child_url IN SELECT unnest(in_child_urls)
     LOOP
         BEGIN
             INSERT INTO webpages (url, depth) VALUES (child_url, in_depth);

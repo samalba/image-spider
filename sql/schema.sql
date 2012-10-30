@@ -54,7 +54,7 @@ CREATE FUNCTION add_webpages(in_child_urls text[], in_depth integer) RETURNS SET
 
     BEGIN
 
-    FOREACH child_url IN ARRAY in_child_urls
+    FOR child_url IN SELECT unnest(in_child_urls)
     LOOP
         BEGIN
             INSERT INTO webpages (url, depth) VALUES (child_url, in_depth);
@@ -93,12 +93,12 @@ CREATE FUNCTION add_webpages(in_parent_url text, in_child_urls text[], in_depth 
 
     BEGIN
         INSERT INTO webpages (url) VALUES (in_parent_url);
-        EXCEPTION WHEN unique_violation THEN -- do nothing.
+        EXCEPTION WHEN unique_violation THEN -- do nothing
     END;
 
     SELECT id INTO parent_id FROM webpages WHERE webpages.url = in_parent_url;
 
-    FOREACH child_url IN ARRAY in_child_urls
+    FOR child_url IN SELECT unnest(in_child_urls)
     LOOP
         BEGIN
             INSERT INTO webpages (url, depth) VALUES (child_url, in_depth);
