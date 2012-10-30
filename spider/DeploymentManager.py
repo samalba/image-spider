@@ -74,6 +74,11 @@ class DeploymentManager:
                 total_pages_queued = \
                     previous_jobstatus['total_pages_queued']
 
+        if total == 0:
+            depth_percent_complete = 100
+        else:
+            depth_percent_complete = int(index / total * 1000) / 10
+
         status = {'total_depth': total_depth,
                   'total_pages_completed': total_pages_completed,
                   'total_pages_queued': total_pages_queued,
@@ -81,7 +86,7 @@ class DeploymentManager:
                   'pages_completed_at_greater_depth':
                                             pages_completed_at_greater_depth,
                   'total_pages_at_depth': total,
-                  'depth_percent_complete': int(index / total * 1000) / 10,
+                  'depth_percent_complete': depth_percent_complete,
                   'current_depth': depth}
 
         data.redis.set('jobstatus:' + str(job_id), pickle.dumps(status))
@@ -185,6 +190,7 @@ class DeploymentManager:
             time.sleep(self.delay)
             self._deploy(job_id)
         else:
+            self._set_job_status(job_id, -1, -1, 0)
             self._active = False
 
 
