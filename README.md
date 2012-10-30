@@ -1,3 +1,5 @@
+Image-Spider is a web crawler that seeks out images.
+
 Documentation
 =============
 
