@@ -26,6 +26,7 @@ def validate_url(url, parent_url='http:'):
         parent_scheme = urlparse(parent_url).scheme or 'http'
         url = parent_scheme + ':' + url
 
-    valid = parsed_url.scheme in ('http', 'https', '')
+    valid = parsed_url.scheme in ('http', 'https', '') and \
+            parsed_url.netloc
 
     return {'valid': valid, 'url': url}
