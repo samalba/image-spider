@@ -1,12 +1,12 @@
 interface:
     type: python
-    approot: image-spider-interface
+    approot: interface
     config:
         python_version: v3.2
 
 spider:
     type: python-worker
-    approot: image-spider
+    approot: spider
     config:
         python_version: v3.2
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-app_file=/srv/http/image-spider-interface/wsgi.py
+app_file=/srv/http/interface/wsgi.py
 
 export DOTCLOUD_POSTGRES_SQL_LOGIN='image_spider'
 export DOTCLOUD_POSTGRES_SQL_PASSWORD='p3nV7qE0bbHaC8n8i'
