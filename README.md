@@ -9,9 +9,10 @@ I think I've stuck to that fairly well.
 
 Design Decisions:
 
-The interface app is basic MVC with a REST interface and a very simple web
-front-end. The spider app is a rather small amount of code, so I haven't imposed
-any conventional architecture on it.
+The interface app is basic MVC with a REST interface and a very simple
+[web front-end](http://imagespider-bkaplan.dotcloud.com/). The spider app is
+a rather small amount of code, so I haven't imposed any conventional
+architecture on it.
 
 Under normal circumstances I would probably at least have relied on an router
 framework for the MVC. But given that this is a relatively simple application,
