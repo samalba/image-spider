@@ -1,3 +1,4 @@
+# Mimic the dotCloud environment. No, these servers are not publicly accessible.
 export DOTCLOUD_POSTGRES_SQL_LOGIN='image_spider'
 export DOTCLOUD_POSTGRES_SQL_PASSWORD='p3nV7qE0bbHaC8n8i'
 export DOTCLOUD_POSTGRES_SQL_HOST='localhost'
