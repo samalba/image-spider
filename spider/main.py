@@ -6,6 +6,7 @@ sys.path.append('/opt/ve/3.2/lib/python3.2/site-packages')
 
 from data import data
 from DeploymentManager import DeploymentManager
+import os
 import pickle
 import signal
 import sys
