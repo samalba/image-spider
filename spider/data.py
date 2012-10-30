@@ -9,6 +9,7 @@ class _Storefront:
     def __init__(self):
         import os
         import postgresql
+        import redis
 
         pq = 'pq://{0}:{1}@{2}:{3}/image_spider'
         pq = pq.format(os.environ['DOTCLOUD_POSTGRES_SQL_LOGIN'],
