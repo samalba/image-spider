@@ -1,3 +1,28 @@
 <!doctype html>
+
+<link rel='stylesheet' type='text/css' href='/static/ic.css'>
+<script type='text/javascript' src='/static/jquery-1.8.2.min.js'></script>
+<script type='text/javascript' src='/static/ic.js'></script>
 <title>Image-Crawler Demo</title>
+
 <h1>Image-Crawler Demo</h1>
+
+<form action='/' method='post'>
+POST to resource: /
+
+<textarea name='urls'>
+http://example.com/
+http://example.org/
+http://example.net/
+</textarea>
+
+<input type='submit' value='Submit'>
+
+<textarea id='output' disabled>
+Responses
+=========</textarea>
+
+</form>
+
+<ol id='status_links'></ol>
+<ol id='result_links'></ol>

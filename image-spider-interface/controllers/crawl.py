@@ -2,6 +2,7 @@
 
 import datetime
 from http_error import http_error
+from markdown import markdown
 import models
 from responder import responder
 from view import view
@@ -23,12 +24,12 @@ class crawl:
     def get(self):
 
         """
+        Get documentation and demo UI.
         """
-        #TODO:docstring
 
-        #TODO:Build demo webpage.
-        demo_view = view('demo.htm')
-        return responder(demo_view, 'text/html')
+        readme_view = markdown(view('../../README.md').decode())
+        demo_view = view('demo.htm').decode()
+        return responder((demo_view + readme_view).encode(), 'text/html')
 
 
     def post(self, querystring, postdata):
