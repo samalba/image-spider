@@ -3,19 +3,12 @@ interface:
     approot: image-spider-interface
     config:
         python_version: v3.2
-    systempackages:
-        - Markdown
-        - py-postgresql
-        - redis
 
 spider:
     type: python-worker
     approot: image-spider
     config:
         python_version: v3.2
-    systempackages:
-        - py-postgresql
-        - redis
 
 postgres:
     type: postgresql
