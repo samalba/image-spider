@@ -1,4 +1,23 @@
+About
+=====
+
 Image-Spider is a web crawler that seeks out images.
+
+TODO:
+
+* The crawler (worker) works for me locally, but not yet on dotCloud.
+* /result GET currently returns only images from the first 5000 pages found, and
+  does not (yet) include pagination. This is because images are associated with
+  URLs, not job ids. They should be associated with both, in order to reteive
+  all of them, although in this case pagination may still be desirable. Another,
+  more appropriate, solution for eliminating the need for pagination would be to
+  use neo4j instead of postgres to store the tree. This is what I wanted to do
+  at first, but dotCloud only offers alpha support for it, and getting it up and
+  running seemed like it might take too much time.
+* /result DELETE is unimplemented. It should require HTTP auth.
+* /status GET should support url parameter.
+* /stop POST is unimplemented.
+* Test coverage is incomplete.
 
 Documentation
 =============
@@ -65,7 +84,7 @@ Resource: /result?job_id=`<JOB_ID>` or ?url=`<URL>`
 
 * Description: Delete the result set for the specified URL.
 * Returns:
-    * Status: `204` or `404` (depending on URL) -- *Should require HTTP auth.*
+    * Status: `204` or `404` (depending on URL)
 
 Resource: /stop?job_id=`<JOB_ID>` or ?url=`<URL>`
 --------------------------------------------------
@@ -75,11 +94,3 @@ Resource: /stop?job_id=`<JOB_ID>` or ?url=`<URL>`
 * Description: Stop crawling the specified URL.
 * Returns:
     * Status: `204` or `404` (depending on URL)
-
-Issues
-======
-
-* `pip install dotcloud` fails on Arch Linux because the scripts assume python2
-  is the installed version of python.
-* pl/python seems unavailable.
-* requirements.txt is not installing.
