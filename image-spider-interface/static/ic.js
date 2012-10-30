@@ -12,11 +12,11 @@ $(document).ready(function () {
         })
     };
 
-    $('form').click(function () {
+    $('form input').click(function () {
         $.ajax({
             type    : 'POST',
             url     : '/',
-            data    : $(this).serialize(),
+            data    : $('form').serialize(),
             success : function (data) {
                 var output = JSON.stringify(data);
                 $('#output').text($('#output').text() + '\n' + output);
