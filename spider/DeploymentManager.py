@@ -185,6 +185,7 @@ class DeploymentManager:
             time.sleep(self.delay)
 
         if len(self._queue):
+            time.sleep(self.delay)
             self._deploy(job_id)
         else:
             self._active = False

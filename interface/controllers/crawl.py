@@ -55,7 +55,7 @@ class crawl:
         if qs and 'depth' in qs and qs['depth'][0].isnumeric():
             depth = int(qs['depth'][0])
         else:
-            depth = 0
+            depth = 2
 
         # Iterate through a copy of urls, since items may be removed from it.
         for url in urls[:]:
