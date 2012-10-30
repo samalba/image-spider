@@ -4,6 +4,7 @@ interface:
     config:
         python_version: v3.2
     systempackages:
+        - Markdown
         - py-postgresql
         - redis
 
