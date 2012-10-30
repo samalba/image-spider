@@ -6,7 +6,8 @@ from redis.exceptions import WatchError
 def claim(url):
 
     """
-    Claim a URL for processing if it is available.
+    Claim a URL for processing if it hasn't already been claimed by a concurrent
+    spider.
 
     Arguments:
         url: string URL to claim.
