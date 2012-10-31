@@ -3,6 +3,7 @@
 from data import data
 import datetime
 from claim import claim
+from html.parser import HTMLParseError
 from MyHtmlParser import MyHtmlParser
 import pickle
 import time
@@ -137,7 +138,12 @@ class DeploymentManager:
             data.redis.set(url, 'failed')
             return
 
-        html_parser.feed(webpage)
+        try:
+            html_parser.feed(webpage)
+        except (HTMLParseError) as error:
+            data.redis.set(url, 'failed')
+            return
+
         data.add_webpages(url, html_parser.hyperlinks, depth)
         data.redis.set(url, 'complete')
         data.complete_crawl(url)
