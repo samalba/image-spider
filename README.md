@@ -46,11 +46,10 @@ Possible Improvements:
 
 TODO:
 
-* The crawler (worker) works for me locally, but not yet on dotCloud.
 * /result GET currently returns only images from the first 5000 pages found, and
-  does not include pagination yet. This is because images are associated with
-  URLs, not job ids. Using neo4j instead of postgres to store the tree would
-  elimintate the need for pagination, although it might still be useful.
+  does not include pagination yet. Using neo4j instead of postgres to store the
+  tree would elimintate the need for pagination, although it might still be
+  useful.
 * /result DELETE is unimplemented. It should require HTTP auth.
 * /status GET should support url parameter.
 * /stop POST is unimplemented.
