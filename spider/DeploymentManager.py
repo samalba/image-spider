@@ -108,6 +108,10 @@ class DeploymentManager:
 
         now = datetime.datetime.now()
         td = now - when
+        print(now)#XXX
+        print(when)#XXX
+        print('---')#XXX
+        return False#XXX
         return 900 > td.total_seconds()
 
 
