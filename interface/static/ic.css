@@ -60,3 +60,8 @@ hr {
 a {
     color:#008;
 }
+
+#loading {
+    display:none;
+    margin-left:15px;
+}

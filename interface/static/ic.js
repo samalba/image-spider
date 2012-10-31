@@ -20,6 +20,7 @@ $(document).ready(function () {
     };
 
     $('form input').click(function () {
+        $('#loading').show();
         $.ajax({
             type    : 'POST',
             url     : '/',
@@ -30,6 +31,7 @@ $(document).ready(function () {
                 addRow(data.job_id);
             }
         });
+        $('#loading').hide();
         return false;
     });
 
