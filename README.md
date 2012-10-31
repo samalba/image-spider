@@ -20,6 +20,10 @@ it's acceptable.
 
 Some general notes on the architecture:
 
+* URLs are stored as a tree, thanks to Postgres's WITH RECURSIVE feature. This
+  allows results for any given webpage from one job to also be applied to other
+  jobs. The current expiry is 15 minutes, but this is arbitrary and adjustable.
+
 * This interface code is separate from the spider code. Multiple spiders can be
   deployed simultaneously to share the workload.
 
@@ -44,11 +48,9 @@ TODO:
 
 * The crawler (worker) works for me locally, but not yet on dotCloud.
 * /result GET currently returns only images from the first 5000 pages found, and
-  does not (yet) include pagination. This is because images are associated with
-  URLs, not job ids. They should be associated with both, in order to reteive
-  all of them, although in this case pagination may still be desirable. Another,
-  more appropriate, solution for eliminating the need for pagination would be to
-  use neo4j instead of postgres to store the tree.
+  does not include pagination yet. This is because images are associated with
+  URLs, not job ids. Using neo4j instead of postgres to store the tree would
+  elimintate the need for pagination, although it might still be useful.
 * /result DELETE is unimplemented. It should require HTTP auth.
 * /status GET should support url parameter.
 * /stop POST is unimplemented.
