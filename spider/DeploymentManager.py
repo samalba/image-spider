@@ -110,14 +110,9 @@ class DeploymentManager:
         now = datetime.datetime.now()
         td = now - when
         try:
-            return 900 > td.total_seconds()
-        except AttributeError:
-            import sys
-            raise Exception(sys.version_info)
-            # This never happens to me locally, but on dotCloud, sometimes there
-            # is an error that total_seconds does not exist. I have not idea
-            # why.
-            return True
+            # Fails on dotCloud even though this was introduced in Python 2.7:
+            # return 900 > td.total_seconds()
+            return 0 == td.days and 900 > td.seconds
 
 
     def _fetch_and_parse(self, job_id, url, depth):
