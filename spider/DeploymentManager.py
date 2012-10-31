@@ -109,11 +109,13 @@ class DeploymentManager:
 
         now = datetime.datetime.now()
         td = now - when
-        print(now)#XXX
-        print(when)#XXX
-        print('---')#XXX
-        return False#XXX
-        return 900 > td.total_seconds()
+        try:
+            return 900 > td.total_seconds()
+        except AttributeError:
+            # This never happens to me locally, but on dotCloud, sometimes there
+            # is an error that total_seconds does not exist. I have not idea
+            # why.
+            return False
 
 
     def _fetch_and_parse(self, job_id, url, depth):
