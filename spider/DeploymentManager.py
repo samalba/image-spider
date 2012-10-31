@@ -112,10 +112,12 @@ class DeploymentManager:
         try:
             return 900 > td.total_seconds()
         except AttributeError:
+            import sys
+            raise Exception(sys.version_info)
             # This never happens to me locally, but on dotCloud, sometimes there
             # is an error that total_seconds does not exist. I have not idea
             # why.
-            return False
+            return True
 
 
     def _fetch_and_parse(self, job_id, url, depth):
