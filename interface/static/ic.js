@@ -1,15 +1,22 @@
 $(document).ready(function () {
 
-    var mkLinkListItem = function (href) {
-        var a = $('<a>', { href : href }).text(href);
-        return li = $('<li>').append(a);
+    var mkCell = function (content) {
+        return $('<td>').append(content);
     };
 
-    var addLinks = function (jobId) {
-        $(['status', 'result']).each(function (k,v) {
-            $('#' + v + '_links').append(mkLinkListItem(
-                '/' + v + '?job_id=' + jobId));
+    var mkLinkCell = function (text, href) {
+        var a = $('<a>', { href : href }).text(text);
+        return mkCell(a);
+    };
+
+    var addRow = function (jobId) {
+        var qs = '?job_id=' + jobId,
+            tr = $('<tr>');
+        tr.append(mkCell(jobId));
+        $(['status', 'result', 'stop']).each(function (k,v) {
+            tr.append(mkLinkCell(v, '/' + v + qs));
         })
+        $('table').append(tr);
     };
 
     $('form input').click(function () {
@@ -20,13 +27,13 @@ $(document).ready(function () {
             success : function (data) {
                 var output = JSON.stringify(data);
                 $('#output').text($('#output').text() + '\n' + output);
-                addLinks(data.job_id);
+                addRow(data.job_id);
             }
         });
         return false;
     });
 
-    $('ol').on('click', 'a', function () {
+    $('table').on('click', 'a', function () {
         open(this.href);
         return false;
     });
