@@ -120,6 +120,7 @@ class DeploymentManager:
         Fetch a webpage and parse it for links and images.
 
         Arguments:
+            job_id: intefer job id.
             url: string URL.
             depth: integer current depth.
 
@@ -159,7 +160,8 @@ class DeploymentManager:
         method to specify which URLs to crawl. Depth should be assigned to each
         submitted URL prior to deployment.
 
-        Arguments: None
+        Arguments:
+            job_id: intefer job id.
 
         Returns: None
         """
@@ -208,7 +210,7 @@ class DeploymentManager:
         Enqueue URLs for the spider to crawl.
 
         Arguments:
-            urls: list of string uniform resource locaters.
+            job_id: intefer job id.
 
         Returns: None
         """
