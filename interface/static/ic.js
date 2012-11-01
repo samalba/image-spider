@@ -29,9 +29,9 @@ $(document).ready(function () {
                 var output = JSON.stringify(data);
                 $('#output').text($('#output').text() + '\n' + output);
                 addRow(data.job_id);
+                $('#loading').hide();
             }
         });
-        $('#loading').hide();
         return false;
     });
 
