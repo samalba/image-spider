@@ -166,10 +166,10 @@ $$;
 ALTER FUNCTION public.get_images(webpage_ids integer[]) OWNER TO bkaplan;
 
 --
--- Name: get_tree(integer, integer); Type: FUNCTION; Schema: public; Owner: bkaplan
+-- Name: get_tree(integer); Type: FUNCTION; Schema: public; Owner: bkaplan
 --
 
-CREATE FUNCTION get_tree(in_parent_id integer, in_limit integer) RETURNS TABLE(parent_id integer, child_id integer)
+CREATE FUNCTION get_tree(in_parent_id integer) RETURNS TABLE(parent_id integer, child_id integer)
     LANGUAGE plpgsql STABLE
     AS $$
 
@@ -179,20 +179,20 @@ CREATE FUNCTION get_tree(in_parent_id integer, in_limit integer) RETURNS TABLE(p
         SELECT parent, child
             FROM webpage_relations
             WHERE parent = in_parent_id
-        UNION ALL
+        UNION
         SELECT t1.parent, t1.child
             FROM t t0, webpage_relations t1
             WHERE t0.child = t1.parent
     )
     SELECT parent, child FROM t
-    LIMIT in_limit;
+    ORDER BY parent;
 
     END;
 
 $$;
 
 
-ALTER FUNCTION public.get_tree(in_parent_id integer, in_limit integer) OWNER TO bkaplan;
+ALTER FUNCTION public.get_tree(in_parent_id integer) OWNER TO bkaplan;
 
 --
 -- Name: get_webpage_info(text); Type: FUNCTION; Schema: public; Owner: bkaplan
@@ -388,6 +388,20 @@ ALTER TABLE ONLY webpages
 
 ALTER TABLE ONLY webpages
     ADD CONSTRAINT webpages_url_key UNIQUE (url);
+
+
+--
+-- Name: image_relations_webpage_id_idx; Type: INDEX; Schema: public; Owner: image_spider; Tablespace: 
+--
+
+CREATE INDEX image_relations_webpage_id_idx ON image_relations USING btree (webpage_id);
+
+
+--
+-- Name: webpage_relations_parent_idx; Type: INDEX; Schema: public; Owner: image_spider; Tablespace: 
+--
+
+CREATE INDEX webpage_relations_parent_idx ON webpage_relations USING btree (parent);
 
 
 --

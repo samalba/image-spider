@@ -32,11 +32,10 @@ Some general notes on the architecture:
 Shortcomings:
 
 * I chose to use postgresql even though neo4j would have been a more appropriate
-  choice for this app. It would have made the app more responsive, and its data
-  better structured. But since neo4j support on dotCloud is still alpha, and
-  I've had a variety of deployment setbacks already, I decided to stick with
-  datastores I know will work. Switching to Neo4j would avoid the need to
-  paginate results.
+  choice for this app. It would have made the app more responsive for deep
+  crawls, and its data better structured. But since neo4j support on dotCloud is
+  still alpha, and I've had a variety of deployment setbacks already, I decided
+  to stick with datastores I know will work.
 
 Possible Improvements:
 
@@ -46,10 +45,6 @@ Possible Improvements:
 
 TODO:
 
-* /result GET currently returns only images from the first 5000 pages found, and
-  does not include pagination yet. Using neo4j instead of postgres to store the
-  tree would elimintate the need for pagination, although it might still be
-  useful.
 * /result DELETE is unimplemented. It should require HTTP auth.
 * /status GET should support url parameter.
 * /stop POST is unimplemented.
@@ -72,9 +67,11 @@ Resource: /
 
 *** Method: POST ***
 
-* Description: Initiate crawling at the specified URLs. Specify depth with the
-  'depth' querystring. Default depth is 2. Post-data:
-  `urls=<URL>\n<URL>\n<URL>\n`&hellip; newline separated, form-urlencoded URLs
+* Description: Initiate crawling at the specified URLs.
+* QueryString options:
+    * `depth`: optional integer, default=2.
+* PostData:
+    * `urls`: form-urlencoded string of newline separated URLs
   assigned to a `urls` parameter.
 * Returns:
     * Status: `202 Accepted` (prior to processing)
@@ -82,12 +79,15 @@ Resource: /
     * Content: `{"job_id":n}`
 
 
-Resource: /status?job_id=`<JOB_ID>` or ?url=`<URL>`
-----------------------------------------------------
+Resource: /status
+-----------------
 
 *** Method: GET ***
 
 * Description: Get the crawler status for the specified URL.
+* QueryString options:
+    * `job_id`: integer job id, required if url is not specified.
+    * `url`: string url, required if job id is not specified.
 * Returns:
     * Status: `200` or `404` (depending on URL)
     * Content-type: application/json
@@ -105,12 +105,15 @@ Resource: /status?job_id=`<JOB_ID>` or ?url=`<URL>`
             * `total_pages_queued`: Count of pages queued so far at any depth.
 
 
-Resource: /result?job_id=`<JOB_ID>` or ?url=`<URL>`
-----------------------------------------------------
+Resource: /result
+-----------------
 
 *** Method: GET ***
 
 * Description: Get the result set for the specified URL.
+* QueryString options:
+    * `job_id`: integer job id, required if url is not specified.
+    * `url`: string url, required if job id is not specified.
 * Returns:
     * Status: `200` or `404` (depending on URL)
     * Content-type: application/json
@@ -122,11 +125,14 @@ Resource: /result?job_id=`<JOB_ID>` or ?url=`<URL>`
 * Returns:
     * Status: `204` or `404` (depending on URL)
 
-Resource: /stop?job_id=`<JOB_ID>` or ?url=`<URL>`
---------------------------------------------------
+Resource: /stop
+---------------
 
 *** Method: POST ***
 
 * Description: Stop crawling the specified URL.
+* QueryString options:
+    * `job_id`: integer job id, required if url is not specified.
+    * `url`: string url, required if job id is not specified.
 * Returns:
     * Status: `204` or `404` (depending on URL)

@@ -8,8 +8,8 @@ from view import view
 
 class result:
 
-#TODO:Docstrings
     """
+    This represents the result of a web crawl.
     """
 
     def __init__(self):
@@ -22,12 +22,11 @@ class result:
         Get a list of result images from a given web crawl.
 
         Arguments:
-            querystring: job_id=<JOB_ID>
+            querystring values:
+                job_id: integer job id.
 
         Returns: JSON list of URLs referencing found image files.
         """
-
-        #TODO:Add pagination support. See images controller, get_tree.
 
         #TODO:Allow this to support url queries too. Abstract status controller
         #     for GET method.

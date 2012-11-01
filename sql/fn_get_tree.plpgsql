@@ -1,7 +1,6 @@
 -- vi: syntax=pgsql
 CREATE OR REPLACE FUNCTION get_tree(
-    in_parent_id integer,
-    in_limit integer
+    in_parent_id integer
 ) RETURNS TABLE (
     parent_id integer,
     child_id integer
@@ -13,13 +12,13 @@ CREATE OR REPLACE FUNCTION get_tree(
         SELECT parent, child
             FROM webpage_relations
             WHERE parent = in_parent_id
-        UNION ALL
+        UNION
         SELECT t1.parent, t1.child
             FROM t t0, webpage_relations t1
             WHERE t0.child = t1.parent
     )
     SELECT parent, child FROM t
-    LIMIT in_limit;
+    ORDER BY parent;
 
     END;
 
