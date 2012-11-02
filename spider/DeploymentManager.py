@@ -109,9 +109,7 @@ class DeploymentManager:
 
         now = datetime.datetime.now()
         td = now - when
-        # Fails on dotCloud even though this was introduced in Python 2.7:
-        # return 900 > td.total_seconds()
-        return 0 == td.days and 900 > td.seconds
+        return 900 > td.total_seconds()
 
 
     def _fetch_and_parse(self, job_id, url, depth):
