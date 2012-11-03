@@ -28,13 +28,13 @@ class result:
         Returns: JSON list of URLs referencing found image files.
         """
 
-        #TODO:Allow this to support url queries too. Abstract status controller
-        #     for GET method.
-
-        if not query['job_id']:
+        if not query['job_id'] and not 'url' in query:
             return http_error('400 Bad Request')
 
-        images = self.images_model.get_by_job_id(query['job_id'])
+        if query['job_id']:
+            images = self.images_model.get_by_job_id(query['job_id'])
+        else:
+            images = self.images_model.get_by_url(query['url'])
 
         result_view = view('result.json', {'images': json.dumps(images)})
         return responder(result_view, 'application/json')

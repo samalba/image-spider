@@ -46,6 +46,11 @@ def application(env, start_response):
     # When using the first form, we only consider the first provided value for
     # any given key. The second form is an integer that implicitly designates
     # a job_id value.
+    #
+    # In either case, the query dict delivered to every controller has
+    # a guaranteed value assignment, even if that value is None. No other query
+    # variables are guaranteed.
+    #
     querystring = parse_qs(env['QUERY_STRING']) or env['QUERY_STRING'] or None
     try:
         query = {k:v[0] for k,v in querystring.items()}
