@@ -46,7 +46,6 @@ Possible Improvements:
 TODO:
 
 * /result DELETE is unimplemented. It should require HTTP auth.
-* /status GET should support url parameter.
 * /stop POST is unimplemented.
 * Test coverage is incomplete.
 
