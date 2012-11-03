@@ -24,7 +24,6 @@ sys.path.append('/opt/ve/3.2/lib/python3.2/site-packages')
 import controllers
 from http_error import http_error
 from responder import responder
-import tests
 from view import view
 
 
@@ -61,17 +60,6 @@ def application(env, start_response):
     except (KeyError, TypeError):
         query['job_id'] = None
 
-    postdata = None
-
-    if 'post' == method: # Read postdata.
-        length = env['CONTENT_LENGTH']
-        try:
-            length = int(length)
-        except KeyError:
-            response = http_error('411 Length Required')
-            return response(start_response)
-        postdata = parse_qs(env['wsgi.input'].read(length).decode())
-
     # If the controller is registered in controllers/__init__.py, and it offers
     # a method that corresponds with the HTTP method in use, then request a
     # response from it. Otherwise our response will be an HTTP error.
@@ -80,6 +68,14 @@ def application(env, start_response):
         request = getattr(controller, method, None)
         if request:
             if 'post' == method:
+                postdata = None
+                try:
+                    length = int(env['CONTENT_LENGTH'])
+                except KeyError:
+                    response = http_error('411 Length Required')
+                    return response(start_response)
+                postdata = parse_qs(env['wsgi.input'].read(length).decode())
+
                 response = request(query, postdata)
             else:
                 response = request(query) if query else request()
