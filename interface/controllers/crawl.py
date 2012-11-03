@@ -21,7 +21,7 @@ class crawl:
         self.job_id = jobs_model.get_id()
 
 
-    def get(self):
+    def get(self, query=None):
 
         """
         Get documentation and demo UI.
