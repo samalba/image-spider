@@ -8,7 +8,7 @@ class stop:
     """
     """
 
-    def post(self, querystring, postdata):
+    def post(self, query, postdata):
 
         """
         """

@@ -32,14 +32,14 @@ class crawl:
         return responder((demo_view + readme_view).encode(), 'text/html')
 
 
-    def post(self, querystring, postdata):
+    def post(self, query, postdata):
 
         """
         Posting to crawl (AKA /) requests spider(s) to crawl each of the
         specified webpages.
 
         Arguments:
-            querystring: Optional string depth=n, where the default is 2.
+            query: dict having optional depth=n, where the default is 2.
             postdata: form-urlencoded string must contain newline-separated URLs
                       assigned to a 'urls' variable.
 
@@ -51,10 +51,9 @@ class crawl:
         else:
             return http_error('400 Bad Request')
 
-        qs = querystring
-        if qs and 'depth' in qs and qs['depth'][0].isnumeric():
-            depth = int(qs['depth'][0])
-        else:
+        try:
+            depth = int(query['depth'])
+        except KeyError:
             depth = 2
 
         # Iterate through a copy of urls, since items may be removed from it.

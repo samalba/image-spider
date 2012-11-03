@@ -16,13 +16,13 @@ class result:
         self.images_model = models.images()
 
 
-    def get(self, querystring=None):
+    def get(self, query=None):
 
         """
         Get a list of result images from a given web crawl.
 
         Arguments:
-            querystring values:
+            query values:
                 job_id: integer job id.
 
         Returns: JSON list of URLs referencing found image files.
@@ -31,18 +31,16 @@ class result:
         #TODO:Allow this to support url queries too. Abstract status controller
         #     for GET method.
 
-        if dict == type(querystring) and 'job_id' in querystring:
-            job_id = int(querystring['job_id'][0])
-        else:
+        if not query['job_id']:
             return http_error('400 Bad Request')
 
-        images = self.images_model.get_by_job_id(job_id)
+        images = self.images_model.get_by_job_id(query['job_id'])
 
         result_view = view('result.json', {'images': json.dumps(images)})
         return responder(result_view, 'application/json')
 
 
-    def delete(self, querystring=None):
+    def delete(self, query=None):
 
         """
         """

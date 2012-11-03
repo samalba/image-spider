@@ -15,36 +15,28 @@ class status:
     Status provides information about webpages we have been asked to crawl.
     """
 
-    def get(self, querystring=None):
+    def get(self, query=None):
 
         """
         Get the status of crawling a given URL.
 
         Arguments:
-            querystring: Integer job_id, job_id=<JOB_ID> assignment, or
-                         url=<URL> assignment.
+            query: Integer job_id, job_id=<JOB_ID> assignment, or
+                   url=<URL> assignment.
         Returns: JSON spider status
         """
 
-        url = job_id = None
+        url = query['url'] if 'url' in query else None
 
-        if dict == type(querystring):
-            if 'job_id' in querystring:
-                job_id = int(querystring['job_id'][0])
-            if 'url' in querystring:
-                url = querystring['url'][0]
-        else:
-            job_id = int(querystring)
-
-        job_id_specified = str(job_id).isnumeric()
+        job_id_specified = str(query['job_id']).isnumeric()
 
         if not (url or job_id_specified):
             return http_error('400 Bad Request')
 
-        job_status = json.dumps(self.jobs_model.get_status(job_id))
+        job_status = json.dumps(self.jobs_model.get_status(query['job_id']))
 
         #TODO:Where url is specified, webpages_model.get_status and get_tree.
 
-        status_view = view('status.json', {'url': url,
+        status_view = view('status.json', {'url': url,#XXX
                                            'job_status': job_status})
         return responder(status_view)

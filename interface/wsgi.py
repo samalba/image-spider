@@ -41,14 +41,28 @@ def application(env, start_response):
     """
     method = env['REQUEST_METHOD'].lower()
     controller_name = env['PATH_INFO'][1:] or 'crawl'
+
+    # We accept two forms of query-strings. The first form is key-value pairs.
+    # When using the first form, we only consider the first provided value for
+    # any given key. The second form is an integer that implicitly designates
+    # a job_id value.
     querystring = parse_qs(env['QUERY_STRING']) or env['QUERY_STRING'] or None
+    try:
+        query = {k:v[0] for k,v in querystring.items()}
+    except AttributeError:
+        query = {'job_id': querystring}
+    try:
+        query['job_id'] = int(query['job_id'])
+    except TypeError:
+        query['job_id'] = None
+
     postdata = None
 
     if 'post' == method: # Read postdata.
         length = env['CONTENT_LENGTH']
-        if length.isnumeric():
+        try:
             length = int(length)
-        else:
+        except KeyError:
             response = http_error('411 Length Required')
             return response(start_response)
         postdata = parse_qs(env['wsgi.input'].read(length).decode())
@@ -61,9 +75,9 @@ def application(env, start_response):
         request = getattr(controller, method, None)
         if request:
             if 'post' == method:
-                response = request(querystring, postdata)
+                response = request(query, postdata)
             else:
-                response = request(querystring) if querystring else request()
+                response = request(query) if query else request()
         else:
             response = http_error('405 Method Not Allowed')
     else:
