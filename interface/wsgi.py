@@ -53,7 +53,7 @@ def application(env, start_response):
         query = {'job_id': querystring}
     try:
         query['job_id'] = int(query['job_id'])
-    except TypeError:
+    except (KeyError, TypeError):
         query['job_id'] = None
 
     postdata = None
