@@ -5,6 +5,7 @@ import datetime
 from claim import claim
 from html.parser import HTMLParseError
 from MyHtmlParser import MyHtmlParser
+import os
 import pickle
 import time
 from urllib.request import urlopen, Request as urllib_Request
@@ -16,7 +17,11 @@ class DeploymentManager:
     def __init__(self):
         self.user_agent = 'Mozilla/5.0 (X11; Linux x86_64; rv:16.0) ' \
                      'Gecko/20100101 Firefox/16.0'
-        self.delay = 5 # Seconds to sleep between requests for politeness.
+        # Delay n seconds between requests for politeness.
+        try:
+            self.delay = float(os.environ['CRAWL_DELAY'])
+        except KeyError:
+            self.delay = 5.0
         self._queue = []
         self._active = False
 
