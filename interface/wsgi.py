@@ -57,7 +57,7 @@ def application(env, start_response):
         query = {'job_id': querystring}
     try:
         query['job_id'] = int(query['job_id'])
-    except (KeyError, TypeError):
+    except (KeyError, TypeError, ValueError):
         query['job_id'] = None
 
     # If the controller is registered in controllers/__init__.py, and it offers
@@ -68,7 +68,6 @@ def application(env, start_response):
         request = getattr(controller, method, None)
         if request:
             if 'post' == method:
-                postdata = None
                 try:
                     length = int(env['CONTENT_LENGTH'])
                 except KeyError:
