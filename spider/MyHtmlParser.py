@@ -28,6 +28,10 @@ class MyHtmlParser(HTMLParser):
 
     def handle_img(self, src):
         if src:
+            if 2048 < len(src):
+                # Ignore obscenely long image URLs. They're probably data: URLs,
+                # but in any case they're not worth the storage space.
+                return
             relate_image = data.pg.proc('relate_image(text,text)')
             relate_image(self.url, urljoin(self.url, src))
 
