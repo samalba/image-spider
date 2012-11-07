@@ -5,7 +5,9 @@ Image-Spider is a web crawler that seeks out images.
 
 Because this was written for a code challenge, I used as few third-party
 libraries as reasonable. My directions were to use only "dotcloud services", and
-I think I've stuck to that fairly well.
+I think I've stuck to that fairly well. In practice this entire piece of code
+could have been handled by third-party software, but that wouldn't have been
+much of a code challenge.
 
 Design Decisions:
 
@@ -15,8 +17,8 @@ a rather small amount of code, so I haven't imposed any conventional
 architecture on it.
 
 Under normal circumstances I would probably at least have relied on an router
-framework for the MVC. But given that this is a relatively simple application,
-it's acceptable.
+framework for the MVC. I also would probably have used a scraper such as Scrapy.
+Given that this is a relatively simple application, it's acceptable.
 
 Some general notes on the architecture:
 
@@ -39,19 +41,35 @@ Shortcomings:
   still alpha, and I've had a variety of deployment setbacks already, I decided
   to stick with datastores I know will work.
 
-* /delete TODO
+* It would be nice to offer DELETE for a specified job_id, to remove it and its
+  results from the datastores. This would require HTTP auth. Unfortunately the
+  architecture does not permit this because URLs are stored only once for any
+  multiple jobs that crawl to them. This means that deleting one job could
+  easily delete part of other jobs. If this was a required feature, a solution
+  would be:
+    * Store an array of job_ids for each webpage URL and each image. This would
+      require a lot of redundant information, and would counter the design of
+      the current architecture, but would allow us to solve for DELETE.
+    * On DELETE of a job_id, begin with the requested webpages at the root of
+      the search tree. Apply the following function to each of them.
+    * Function:
+        * Remove the specified job_id from the webpage's array.
+        * Find all images related to that webpage. For each image, remove the
+          specified job_id from the image's array.
+        * If the image's array is empty then delete that image.
+        * For each child of the webpage, recursively apply this function.
+        * If the webpage's array is empty then delete that webpage.
 
 Possible Improvements:
 
 * See the following TODO list for starters. I'll add more here as I think of it.
 
-* A /jobs resource for listing all active jobs. It would be useful if the web
-  interface provided a "stop" link for each of them.
+* It would be nice to have a /jobs resource to GET a list of all jobs.
 
 TODO:
 
-* /result DELETE is unimplemented. It should require HTTP auth.
 * Test coverage is incomplete.
+* Aborted jobs are not restarted.
 
 Documentation
 =============
