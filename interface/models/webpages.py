@@ -30,3 +30,11 @@ class webpages(DataModel):
         if urls:
             self.redis.sadd('job' + str(job_id), *urls) # This gets appened.
             self.redis.sadd('job' + str(job_id) + ':init', *urls)
+            for url in urls:
+                self.redis.rpush('reg:' + url, job_id)
+
+    def get_job_ids(self, url):
+        key = 'reg:' + url
+        length = self.redis.llen(key)
+        byte_list = self.redis.lrange(key, 0, length)
+        return [int(i) for i in byte_list]

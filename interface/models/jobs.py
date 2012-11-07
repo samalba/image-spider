@@ -46,3 +46,18 @@ class jobs(DataModel):
         """
 
         return True if self.get_status(job_id) else False
+
+
+    def get_init_urls(self, job_id):
+
+        """
+        Get initial URLs specified for a given Job ID.
+
+        Arguments:
+            job_id: integer Job ID.
+
+        Returns: list of string URLs.
+        """
+
+        smembers = self.redis.smembers('job' + str(job_id) + ':init')
+        return [member.decode() for member in smembers]

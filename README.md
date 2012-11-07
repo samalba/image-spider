@@ -113,9 +113,12 @@ Resource: /status
     * Status: `200` or `404` (depending on URL)
     * Content-type: application/json
     * Content: JSON object having the following properties:
-        * url
-            * *TODO*
-        * job_status
+        * `urls`: list of URLs processed for job, excluding any cached results.
+        * `job_status`: Either a object or a array of objects; if you request by
+                        job_id then it will be a object -- if you request by url
+                        then it will be a array of objects (because multiple
+                        jobs may have crawled the same URL). In either case, the
+                        object(s) will contain the following:
             * `total_depth`: Depth at which a spider was instructed to begin.
             * `current_depth`: Depth at which a spider is currently crawling.
             * `total_pages_completed`: Total pages completed.

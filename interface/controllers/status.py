@@ -10,6 +10,7 @@ class status:
 
     def __init__(self):
         self.jobs_model = models.jobs()
+        self.webpages_model = models.webpages()
 
     """
     Status provides information about webpages we have been asked to crawl.
@@ -27,16 +28,31 @@ class status:
         """
 
         url = query['url'] if 'url' in query else None
+        job_id = query['job_id'] if 'job_id' in query else None
+        job_id_specified = int == type(job_id)
+        webpage_id = None
+        if url:
+            webpage_id = self.webpages_model.get_webpage_info(url)['id']
 
-        job_id_specified = str(query['job_id']).isnumeric()
-
-        if not (url or job_id_specified):
+        if not url and not job_id_specified:
             return http_error('400 Bad Request')
 
-        job_status = json.dumps(self.jobs_model.get_status(query['job_id']))
+        if job_id_specified and not self.jobs_model.job_exists(job_id):
+            return http_error('404 Not Found')
+        elif url and not webpage_id:
+            return http_error('404 Not Found')
 
-        #TODO:Where url is specified, webpages_model.get_status and get_tree.
+        if job_id_specified:
+            urls = json.dumps(self.jobs_model.get_init_urls(job_id))
+            job_status = json.dumps(self.jobs_model.get_status(job_id))
+        else:
+            urls = json.dumps([url])
+            get_status = self.jobs_model.get_status
+            job_ids = self.webpages_model.get_job_ids(url)
+            job_status_list = [get_status(job_id) for job_id in job_ids]
+            job_status_list = [status for status in job_status_list if status]
+            job_status = json.dumps(job_status_list)
 
-        status_view = view('status.json', {'url': url,#XXX
+        status_view = view('status.json', {'urls': urls,
                                            'job_status': job_status})
         return responder(status_view)

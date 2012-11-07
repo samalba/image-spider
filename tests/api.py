@@ -138,6 +138,11 @@ class Get(unittest.TestCase):
 
     def get_response(self, resource, query_string):
         self.response = request('GET', resource, query_string)
+        attempts = 50
+        while '404 Not Found' == self.response['http_status'] and attempts:
+            attempts -= 1
+            time.sleep(1)
+            self.response = request('GET', resource, query_string)
         self.json_response = json.loads(self.response['content'].decode())
 
 
@@ -240,35 +245,12 @@ class CrawlPost(unittest.TestCase):
         self.assertEqual(int, type(json_response['job_id']))
 
 
-class StatusGetByUrl(Get):
-
-    def setUp(self):
-        test = lambda: self.json_response['url']
-        self.setUp_for_GetByUrl('/status', test)
+class StatusGet(Get):
 
     def test_http_status(self):
         self.assertEqual(self.response['http_status'], '200 OK')
 
-    def test_content(self):
-        json_response = json.loads(self.response['content'].decode())
-        self.fail('TODO')#TODO
-
-
-class StatusGetByJobId(Get):
-
-    def setUp(self):
-        test = lambda: self.json_response['job_status']
-        self.setUp_for_GetByJobId('/status', test)
-
-    def test_http_status(self):
-        self.assertEqual(self.response['http_status'], '200 OK')
-
-    def test_content(self):
-        self.assertIn('url', self.json_response)#TODO:This may change or be
-                                            #incomplete.
-        self.assertIn('job_status', self.json_response)
-        job_status = self.json_response['job_status']
-        self.assertEqual(dict, type(job_status))
+    def _sub_job_status(self, job_status):
         self.assertIn('current_depth', job_status)
         self.assertEqual(int, type(job_status['current_depth']))
         self.assertIn('depth_percent_complete', job_status)
@@ -288,6 +270,37 @@ class StatusGetByJobId(Get):
         self.assertEqual(int, type(job_status['total_pages_queued']))
 
 
+    def test_content(self):
+        self.assertIn('urls', self.json_response)
+        self.assertIn('job_status', self.json_response)
+        urls = self.json_response['urls']
+        self.assertEqual(list, type(urls))
+        job_status = self.json_response['job_status']
+        test_case = self.id().split('.')[1]
+        if 'StatusGetByJobId' == test_case:
+            self.assertEqual(dict, type(job_status))
+            self._sub_job_status(job_status)
+        elif 'StatusGetByUrl' == test_case:
+            self.assertEqual(list, type(job_status))
+            self.assertGreater(len(job_status), 0)
+            for status in job_status:
+                self._sub_job_status(status)
+
+
+class StatusGetByUrl(StatusGet):
+
+    def setUp(self):
+        test = lambda: self.json_response['job_status']
+        self.setUp_for_GetByUrl('/status', test)
+
+
+class StatusGetByJobId(StatusGet):
+
+    def setUp(self):
+        test = lambda: self.json_response['job_status']
+        self.setUp_for_GetByJobId('/status', test)
+
+
 class ResultGet(Get):
 
     """
@@ -298,7 +311,7 @@ class ResultGet(Get):
         self.assertEqual(self.response['http_status'], '200 OK')
 
     def test_content(self):
-        self.assertEqual(1, len(self.json_response))
+        self.assertGreater(len(self.json_response), 0)
         parsed_image_url = url_request.urlparse(self.json_response[0])
         self.assertEqual(parsed_image_url.scheme, 'http')
         self.assertEqual(parsed_image_url.netloc, '127.0.0.1:8000')

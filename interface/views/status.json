@@ -1,1 +1,1 @@
-{"url": "${url}", "job_status": ${job_status}}
+{"urls": ${urls}, "job_status": ${job_status}}
