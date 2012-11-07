@@ -10,9 +10,26 @@ class spiders(DataModel):
     workers.
     """
 
-    def stop(self, url):
-        #TODO:docstring
-        pass#TODO
+    def stop(self, url=None, job_id=None):
+
+        """
+        Send an abort request to spiders for the specified URL or job_id.
+
+        Arguments:
+            url: Optional string URL, required if job_id is unspecified.
+            job_id: Optional integer Job ID, required if url is unspecified.
+
+        Returns: None
+        """
+
+        previous_job_status = self.redis.get('job_status:' + str(job_id))
+        if previous_job_status:
+            job_status = pickle.loads(previous_job_status)
+            job_status['state'] = 'Aborted'
+        else:
+            job_status = {'state': 'Aborted'}
+        self.redis.set('job_status:' + str(job_id), pickle.dumps(job_status))
+
 
 
     def deploy(self, job_id):

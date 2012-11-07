@@ -9,14 +9,13 @@ import os
 import pickle
 import time
 from urllib.request import urlopen, Request as urllib_Request
-from urllib.error import HTTPError, URLError
 from validate_url import validate_url
 
 class DeploymentManager:
 
     def __init__(self):
         self.user_agent = 'Mozilla/5.0 (X11; Linux x86_64; rv:16.0) ' \
-                     'Gecko/20100101 Firefox/16.0'
+                          'Gecko/20100101 Firefox/16.0'
         # Delay n seconds between requests for politeness.
         try:
             self.delay = float(os.environ['CRAWL_DELAY'])
@@ -26,7 +25,7 @@ class DeploymentManager:
         self._active = False
 
 
-    def _set_job_status(self, job_id, depth, index, total):
+    def _set_job_status(self, job_id, depth, index, total, state='Running'):
 
         """
         Set the spider's completion status for the current job.
@@ -43,49 +42,53 @@ class DeploymentManager:
         depth += 1
         index += 1
 
-        # Set default values for where previous jobstatus has no effect.
+        # Set default values for where previous job_status has no effect.
         total_depth = depth
         total_pages_completed = index
         total_pages_queued = total
         pages_completed_at_greater_depth = 0
 
-        # If we already have a previous jobstatus, then build upon it.
-        previous_jobstatus = data.redis.get('jobstatus:' + str(job_id))
-        if previous_jobstatus:
+        # If we already have a previous job_status, then build upon it.
+        previous_job_status = data.redis.get('job_status:' + str(job_id))
+        if previous_job_status:
 
-            previous_jobstatus = pickle.loads(previous_jobstatus)
+            previous_job_status = pickle.loads(previous_job_status)
 
-            total_depth = previous_jobstatus['total_depth']
+            total_depth = previous_job_status['total_depth']
 
             pages_completed_at_greater_depth = \
-                previous_jobstatus['pages_completed_at_greater_depth']
+                previous_job_status['pages_completed_at_greater_depth']
 
             total_pages_completed = \
-                previous_jobstatus['pages_completed_at_greater_depth'] + \
+                previous_job_status['pages_completed_at_greater_depth'] + \
                 index
 
             total_pages_queued = \
-                previous_jobstatus['pages_completed_at_greater_depth'] + \
+                previous_job_status['pages_completed_at_greater_depth'] + \
                 total
 
-            if previous_jobstatus['current_depth'] > depth:
+            if previous_job_status['current_depth'] > depth:
 
                 pages_completed_at_greater_depth = \
-                    previous_jobstatus['total_pages_completed']
+                    previous_job_status['total_pages_completed']
 
                 total_pages_completed = \
-                    previous_jobstatus['pages_completed_at_greater_depth'] + \
-                    previous_jobstatus['pages_completed_at_depth']
+                    previous_job_status['pages_completed_at_greater_depth'] + \
+                    previous_job_status['pages_completed_at_depth']
 
                 total_pages_queued = \
-                    previous_jobstatus['total_pages_queued']
+                    previous_job_status['total_pages_queued']
+
+            if 'Aborted' == previous_job_status['state']:
+                state = 'Aborted'
 
         if total == 0:
             depth_percent_complete = 100
         else:
             depth_percent_complete = int(index / total * 1000) / 10
 
-        status = {'total_depth': total_depth,
+        status = {'state': state,
+                  'total_depth': total_depth,
                   'total_pages_completed': total_pages_completed,
                   'total_pages_queued': total_pages_queued,
                   'pages_completed_at_depth': index,
@@ -95,7 +98,7 @@ class DeploymentManager:
                   'depth_percent_complete': depth_percent_complete,
                   'current_depth': depth}
 
-        data.redis.set('jobstatus:' + str(job_id), pickle.dumps(status))
+        data.redis.set('job_status:' + str(job_id), pickle.dumps(status))
 
 
     def _less_than_15_min_ago(self, when):
@@ -136,7 +139,7 @@ class DeploymentManager:
 
         try:
             webpage = urlopen(request).read().decode()
-        except (HTTPError, URLError, UnicodeDecodeError) as error:
+        except Exception as error:
             data.redis.set(url, 'failed')
             return
 
@@ -150,7 +153,7 @@ class DeploymentManager:
         data.redis.set(url, 'complete')
         data.complete_crawl(url)
 
-        if 0 < depth:
+        if 0 < depth and self._active and not data.job_is_aborted(job_id):
             if html_parser.hyperlinks:
                 data.redis.sadd('job' + str(job_id), *html_parser.hyperlinks)
             data.redis.publish('deploy', pickle.dumps(job_id))
@@ -169,9 +172,15 @@ class DeploymentManager:
         Returns: None
         """
 
+        if data.job_is_aborted(job_id):
+            return
+
         self._active = True
         queue_copy = self._queue[:]
         for index, url in enumerate(queue_copy):
+
+            if data.job_is_aborted(job_id):
+                break
 
             self._queue.remove(url)
             validated_url = validate_url(url)
@@ -199,12 +208,13 @@ class DeploymentManager:
             self._fetch_and_parse(job_id, url, depth)
             time.sleep(self.delay)
 
-        if len(self._queue):
-            time.sleep(self.delay)
-            self._deploy(job_id)
-        else:
-            self._set_job_status(job_id, -1, -1, 0)
-            self._active = False
+        if not data.job_is_aborted(job_id):
+            if len(self._queue):
+                time.sleep(self.delay)
+                self._deploy(job_id)
+            else:
+                self._set_job_status(job_id, -1, -1, 0, 'Complete')
+                self._active = False
 
 
     def enqueue(self, job_id):
@@ -220,9 +230,5 @@ class DeploymentManager:
 
         urls = data.redis.smembers('job' + str(job_id))
         self._queue.extend(urls)
-        if not self._active:
+        if not self._active and not data.job_is_aborted(job_id):
             self._deploy(job_id)
-
-
-    def abort(self):
-        pass#TODO

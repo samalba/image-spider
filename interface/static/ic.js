@@ -11,11 +11,27 @@ $(document).ready(function () {
 
     var addRow = function (jobId) {
         var qs = '?job_id=' + jobId,
-            tr = $('<tr>');
+            tr = $('<tr>'),
+            button = $('<button>').
+                text('stop').
+                click(function () {
+                    btn = $(this).
+                       attr('disabled', 'disabled').
+                       text('stopping\u2026');
+                    $.ajax({
+                        type    : 'POST',
+                        url     : '/stop?' + jobId,
+                        success : function () {
+                            btn.text('stopped');
+                        }
+                    });
+                });
+
         tr.append(mkCell(jobId));
-        $(['status', 'result', 'stop']).each(function (k,v) {
+        $(['status', 'result']).each(function (k,v) {
             tr.append(mkLinkCell(v, '/' + v + qs));
         })
+        tr.append(mkCell(button));
         $('table').append(tr);
     };
 

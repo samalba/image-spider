@@ -25,7 +25,9 @@ Some general notes on the architecture:
   jobs. The current expiry is 15 minutes, but this is arbitrary and adjustable.
 
 * This interface code is separate from the spider code. Multiple spiders can be
-  deployed simultaneously to share the workload.
+  deployed simultaneously to share the workload. The spiders are written so as
+  to use dotCloud workers, as requested. Otherwise I would probably have chosen
+  to use a python pool of workers, to gain more programatic control over them.
 
 * REST methods correspond to controller methods.
 
@@ -37,16 +39,18 @@ Shortcomings:
   still alpha, and I've had a variety of deployment setbacks already, I decided
   to stick with datastores I know will work.
 
+* /delete TODO
+
 Possible Improvements:
 
 * See the following TODO list for starters. I'll add more here as I think of it.
+
 * A /jobs resource for listing all active jobs. It would be useful if the web
   interface provided a "stop" link for each of them.
 
 TODO:
 
 * /result DELETE is unimplemented. It should require HTTP auth.
-* /stop POST is unimplemented.
 * Test coverage is incomplete.
 
 Documentation
@@ -122,7 +126,7 @@ Resource: /result
 
 * Description: Delete the result set for the specified URL.
 * Returns:
-    * Status: `204` or `404` (depending on URL)
+    * Status: `204 No Content` or `404 Not Found` (depending on URL)
 
 Resource: /stop
 ---------------
@@ -134,4 +138,4 @@ Resource: /stop
     * `job_id`: integer job id, required if url is not specified.
     * `url`: string url, required if job id is not specified.
 * Returns:
-    * Status: `204` or `404` (depending on URL)
+    * Status: `202 Accepted` (prior to processing)

@@ -1,5 +1,10 @@
 # -*- coding: ascii -*-
 
+import os
+import pickle
+import postgresql
+import redis
+
 class _Storefront:
 
     """
@@ -7,10 +12,6 @@ class _Storefront:
     """
 
     def __init__(self):
-        import os
-        import postgresql
-        import redis
-
         pq = 'pq://{0}:{1}@{2}:{3}/image_spider'
         pq = pq.format(os.environ['DOTCLOUD_POSTGRES_SQL_LOGIN'],
                        os.environ['DOTCLOUD_POSTGRES_SQL_PASSWORD'],
@@ -35,6 +36,43 @@ class _Storefront:
 
         setattr(self, 'complete_crawl',
                 self.pg.proc('complete_crawl(text)'))
+
+
+    def abort(self, job_id):
+
+        """
+        Set the state of the specified job to 'Aborted', causing spider(s) to
+        stop processing it.
+
+        Arguments:
+            job_id: integer Job ID.
+
+        Returns: None.
+        """
+
+        previous_job_status = self.redis.get('job_status:' + str(job_id))
+        if previous_job_status:
+            job_status = pickle.loads(previous_job_status)
+            job_status['state'] = 'Aborted'
+        else:
+            job_status = {'state': 'Aborted'}
+        self.redis.set('job_status:' + str(job_id), pickle.dumps(job_status))
+
+
+    def job_is_aborted(self, job_id):
+
+        """
+        Check to see whether the specified job has been aborted.
+
+        Arguments:
+            job_id: integer Job ID.
+
+        Returns: boolean truth value.
+        """
+
+        job_status = self.redis.get('job_status:' + str(job_id))
+        state = pickle.loads(job_status)['state'] if job_status else None
+        return 'Aborted' == state
 
 
 data = _Storefront()

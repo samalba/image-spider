@@ -11,5 +11,5 @@ class jobs(DataModel):
 
 
     def get_status(self, job_id):
-        result = self.redis.get('jobstatus:' + str(job_id))
+        result = self.redis.get('job_status:' + str(job_id))
         return pickle.loads(result) if result else None
