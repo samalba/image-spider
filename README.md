@@ -46,7 +46,7 @@ Shortcomings:
   architecture does not permit this because URLs are stored only once for any
   multiple jobs that crawl to them. This means that deleting one job could
   easily delete part of other jobs. If this was a required feature, a solution
-  would be:
+  would be (using Postgres):
     * Store an array of job_ids for each webpage URL and each image. This would
       require a lot of redundant information, and would counter the design of
       the current architecture, but would allow us to solve for DELETE.
