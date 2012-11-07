@@ -322,15 +322,15 @@ class ResultGetByJobId(ResultGet):
 
 class StopPost(unittest.TestCase):
     def setUp(self):
-        # TODO:We need to request for this and then get it separately.
-#         self.response = request('POST', '/stop', get_test_urls(1))
-        pass#XXX
+        self.response = initiate_crawl()[1]
+        self.json_response = json.loads(self.response['content'].decode())
 
     def test_http_status(self):
         self.assertEqual(self.response['http_status'], '202 Accepted')
 
     def test_content(self):
-        self.fail('TODO')#TODO
+        self.assertIn('job_id', self.json_response)
+        self.assertEqual(int, type(self.json_response['job_id']))
 
 
 if __name__ == '__main__':
@@ -338,8 +338,7 @@ if __name__ == '__main__':
     disallowed_methods = {'get': ('stop',),
                           'post': ('status', 'result')} #TODO:Add to this
     tests = [CrawlTarget, CrawlGet, CrawlPost, StatusGetByJobId, StatusGetByUrl,
-             ResultGetByUrl, ResultGetByJobId, ResultDelete, StopPostByUrl,
-             StopPostByJobId] + \
+             ResultGetByUrl, ResultGetByJobId, StopPost] + \
              generate_disallowed_method_tests(disallowed_methods)
     load = [unittest.TestLoader().loadTestsFromTestCase(test) for test in tests]
     suite = unittest.TestSuite(load)
