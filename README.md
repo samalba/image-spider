@@ -135,7 +135,7 @@ Resource: /stop
 
 * Description: Stop crawling the specified URL.
 * QueryString options:
-    * `job_id`: integer job id, required if url is not specified.
-    * `url`: string url, required if job id is not specified.
+    * `job_id`: integer job id.
 * Returns:
-    * Status: `202 Accepted` (prior to processing)
+    * Status: `202 Accepted` (prior to processing) or `404 Not Found` (depending
+      on job_id)

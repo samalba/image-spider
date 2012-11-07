@@ -1,5 +1,6 @@
 # -*- coding: ascii -*-
 
+from http_error import http_error
 import models
 from responder import responder
 
@@ -11,7 +12,8 @@ class stop:
     """
 
     def __init__(self):
-        self.spirders_model = models.spiders()
+        self.spiders_model = models.spiders()
+        self.jobs_model = models.jobs()
 
 
     def post(self, query, postdata):
@@ -21,18 +23,17 @@ class stop:
 
         Arguments:
 
-            query: dict query having one of the following parameters:
-                url: Optional string URL, required if job_id is unspecified.
-                job_id: Optional integer Job ID, required if url is unspecified.
+            query: dict query having the following parameter:
+                job_id: integer Job ID.
 
             postdata: Ignored.
 
         Returns: None
         """
 
-        if 'url' in query:
-            self.spirders_model.stop(url=query['url'])
+        job_id = query['job_id']
+        if self.jobs_model.job_exists(job_id):
+            self.spiders_model.stop(job_id)
+            return responder(None, None, '202 Accepted')
         else:
-            self.spirders_model.stop(job_id=query['job_id'])
-
-        return responder(None, None, '202 Accepted')
+            return http_error('404 Not Found')

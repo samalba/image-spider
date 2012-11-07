@@ -10,14 +10,13 @@ class spiders(DataModel):
     workers.
     """
 
-    def stop(self, url=None, job_id=None):
+    def stop(self, job_id):
 
         """
-        Send an abort request to spiders for the specified URL or job_id.
+        Send an abort request to spiders for the specified Job ID.
 
         Arguments:
-            url: Optional string URL, required if job_id is unspecified.
-            job_id: Optional integer Job ID, required if url is unspecified.
+            job_id: integer Job ID to stop.
 
         Returns: None
         """
