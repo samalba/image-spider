@@ -320,40 +320,14 @@ class ResultGetByJobId(ResultGet):
         self.setUp_for_GetByJobId('/result', test)
 
 
-class ResultDelete(unittest.TestCase):
-    def setUp(self):
-        # TODO:We need to request for this and then get it separately.
-#         self.response = request('DELETE', '/result', get_test_urls(1))
-        pass#XXX
-
-    def test_http_status(self):
-        self.assertEqual(self.response['http_status'], '200 OK')#XXX correct?
-
-    def test_content(self):
-        self.fail('TODO')#TODO
-
-
-class StopPostByUrl(unittest.TestCase):
+class StopPost(unittest.TestCase):
     def setUp(self):
         # TODO:We need to request for this and then get it separately.
 #         self.response = request('POST', '/stop', get_test_urls(1))
         pass#XXX
 
     def test_http_status(self):
-        self.assertEqual(self.response['http_status'], '200 OK')
-
-    def test_content(self):
-        self.fail('TODO')#TODO
-
-
-class StopPostByJobId(unittest.TestCase):
-    def setUp(self):
-        # TODO:We need to request for this and then get it separately.
-#         self.response = request('POST', '/stop', get_test_urls(1))
-        pass#XXX
-
-    def test_http_status(self):
-        self.assertEqual(self.response['http_status'], '200 OK')
+        self.assertEqual(self.response['http_status'], '202 Accepted')
 
     def test_content(self):
         self.fail('TODO')#TODO
