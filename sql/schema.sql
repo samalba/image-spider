@@ -145,6 +145,58 @@ $$;
 ALTER FUNCTION public.complete_crawl(in_url text) OWNER TO bkaplan;
 
 --
+-- Name: delete_tree(integer); Type: FUNCTION; Schema: public; Owner: bkaplan
+--
+
+CREATE FUNCTION delete_tree(in_webpage_id integer) RETURNS SETOF void
+    LANGUAGE plpgsql
+    AS $$
+
+    DECLARE loop_id integer;
+
+    BEGIN
+
+    -- Select tree into temp table.
+    CREATE TEMPORARY TABLE tree AS
+    WITH RECURSIVE t(parent, child) AS (
+        SELECT parent, child
+            FROM webpage_relations
+            WHERE parent = in_webpage_id
+        UNION
+        SELECT t1.parent, t1.child
+            FROM t t0, webpage_relations t1
+            WHERE t0.child = t1.parent
+    )
+    SELECT child AS id FROM t
+    ORDER BY parent;
+
+    -- Delete images and webpage for the parent webpage.
+    DELETE FROM images WHERE id IN (
+        SELECT image_relations.image_id FROM image_relations
+        WHERE image_relations.webpage_id = in_webpage_id);
+    DELETE FROM webpages WHERE webpages.id = in_webpage_id;
+
+    -- Delete images and webpage for each descendant in the tree.
+    BEGIN
+        FOR loop_id IN SELECT id FROM tree
+        LOOP
+            DELETE FROM images WHERE id IN (
+                SELECT image_relations.image_id FROM image_relations
+                WHERE image_relations.webpage_id = loop_id);
+            DELETE FROM webpages WHERE webpages.id = loop_id;
+        END LOOP;
+    END;
+
+    DROP TABLE tree;
+
+    END;
+
+$$;
+
+
+ALTER FUNCTION public.delete_tree(in_webpage_id integer) OWNER TO bkaplan;
+
+--
 -- Name: get_images(integer[]); Type: FUNCTION; Schema: public; Owner: bkaplan
 --
 

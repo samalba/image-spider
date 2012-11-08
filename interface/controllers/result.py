@@ -14,6 +14,7 @@ class result:
 
     def __init__(self):
         self.images_model = models.images()
+        self.webpages_model = models.webpages()
 
 
     def get(self, query=None):
@@ -43,7 +44,20 @@ class result:
     def delete(self, query=None):
 
         """
-        """
-        #TODO:docstring
+        Delete the specified URL, all related images, and all crawled children
+        of that URL from the datastores.
 
-        pass#TODO
+        Arguments:
+            query values:
+                url: string URL.
+
+        Returns: HTTP 204 or 404.
+        """
+
+        if not 'url' in query:
+            return http_error('400 Bad Request')
+
+        if self.webpages_model.delete(query['url']):
+            return responder(None, None, '204 No Content')
+        else:
+            return http_error('404 Not Found')

@@ -29,7 +29,7 @@ Some general notes on the architecture:
 * This interface code is separate from the spider code. Multiple spiders can be
   deployed simultaneously to share the workload. The spiders are written so as
   to use dotCloud workers, as requested. Otherwise I would probably have chosen
-  to use a python pool of workers, to gain more programatic control over them.
+  to use a python pool of workers, to gain more programmatic control over them.
 
 * REST methods correspond to controller methods.
 
@@ -41,12 +41,16 @@ Shortcomings:
   still alpha, and I've had a variety of deployment setbacks already, I decided
   to stick with datastores I know will work.
 
-* It would be nice to offer DELETE for a specified job_id, to remove it and its
-  results from the datastores. This would require HTTP auth. Unfortunately the
-  architecture does not permit this because URLs are stored only once for any
-  multiple jobs that crawl to them. This means that deleting one job could
-  easily delete part of other jobs. If this was a required feature, a solution
-  would be (using Postgres):
+* DELETE /result should require HTTP auth. The only reason it doesn't is because
+  this app is a code demonstration, not intended for production use. HTTP auth
+  would be an unnecessary barrier in this case.
+
+* DELETE /result accepts a url parameter, but not job_id. It would be nice to
+  offer DELETE for a specified job_id, to remove that job and its results from
+  the datastores. Unfortunately the architecture does not permit this because
+  URLs are stored only once for any multiple jobs that crawl to them. This means
+  that deleting one job could easily delete part of other jobs. If this was
+  a required feature, a solution would be (using Postgres):
     * Store an array of job_ids for each webpage URL and each image. This would
       require a lot of redundant information, and would counter the design of
       the current architecture, but would allow us to solve for DELETE.
@@ -145,7 +149,11 @@ Resource: /result
 
 *** Method: DELETE ***
 
-* Description: Delete the result set for the specified URL.
+* Description: Delete the result set for the specified URL, including any
+               associated images, any descendant children URLs, and any images
+               associated with them.
+* QueryString options:
+    * `url`: string url.
 * Returns:
     * Status: `204 No Content` or `404 Not Found` (depending on URL)
 

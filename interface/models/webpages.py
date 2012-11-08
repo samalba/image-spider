@@ -118,4 +118,11 @@ class webpages(DataModel):
         Returns: boolean success value.
         """
 
-        return False#TODO
+        self.redis.delete((url, 'reg' + url))
+        webpage_id = self.get_webpage_info(url)[0]
+        if webpage_id:
+            delete_tree = self.pg.proc('delete_tree(integer)')
+            delete_tree(webpage_id)
+            return True
+        else:
+            return False
