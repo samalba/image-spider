@@ -68,10 +68,6 @@ Possible Improvements:
 
 * It would be nice to have a /jobs resource to GET a list of all jobs.
 
-TODO:
-
-* Test coverage is incomplete.
-
 Documentation
 =============
 
