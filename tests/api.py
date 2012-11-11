@@ -59,7 +59,7 @@ def request(method, resource, query_string='', post_data=''):
            'QUERY_STRING': query_string,
            'wsgi.input': WsgiInputStub(post_data)}
 
-    if post_data:
+    if 'POST' == method:
         env['CONTENT_LENGTH'] = len(post_data)
 
     result['content'] = wsgi.application(env, store_headers)
