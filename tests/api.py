@@ -368,25 +368,111 @@ class ResultGetByJobId(ResultGet):
         self.setUp_for_GetByJobId('/result', test)
 
 
-class StopPost(unittest.TestCase):
+class MultiOp(unittest.TestCase):
+
+    """
+    This is a base class for multi-operational tests, meaning they must issue
+    multiple requests sequentially.
+    """
+
+    def _mk_response_test(self, desired_job_states):
+
+        """
+        Make a response test for use with Get.wait_for_passing_content().
+
+        Arguments:
+            desired_job_states: iterable of string job states to match.
+
+        Returns: function response_test.
+        """
+
+        def response_test():
+            if dict == type(self.get.json_response) and \
+                    'job_status' in self.get.json_response:
+                job_status = self.get.json_response['job_status']
+                return dict == type(job_status) and \
+                       'state' in job_status and \
+                       job_status['state'] in desired_job_states
+            else:
+                return False
+        return response_test
+
+
+class ResultDelete(MultiOp):
+
     def setUp(self):
-        self.response = initiate_crawl()[1]
-        self.json_response = json.loads(self.response['content'].decode())
+        self.get = Get()
+        urls, response = initiate_crawl()
+        json_response = json.loads(response['content'].decode())
+        job_id = json_response['job_id']
+        self.query_string = 'job_id=' + str(job_id)
+
+        # Wait until the initiated crawl has begun.
+        self.get.wait_for_passing_content('/status', self.query_string,
+                                          self._mk_response_test(['Running',
+                                                                 'Complete']))
+
+        # Stop the crawl.
+        response = request('POST', '/stop', self.query_string)
+        self.assertEqual(response['http_status'], '202 Accepted')
+        self.get.wait_for_passing_content('/status', self.query_string,
+                                          self._mk_response_test(['Aborted']))
+
+        # Delete the results.
+        for url in urls:
+            self.response = request('DELETE', '/result',
+                                    'url=' + parse.quote(url))
+
+    def test_http_status(self):
+        self.assertEqual(self.response['http_status'], '204 No Content')
+
+    def test_success(self):
+        response = request('GET', '/result', self.query_string)
+        json_response = json.loads(response['content'].decode())
+        self.assertEqual(0, len(json_response))
+
+
+class StopPost(MultiOp):
+    def setUp(self):
+        self.get = Get()
+        urls, response = initiate_crawl()
+        json_response = json.loads(response['content'].decode())
+        job_id = json_response['job_id']
+        self.query_string = 'job_id=' + str(job_id)
+
+        # Wait until the initiated crawl has begun.
+        self.get.wait_for_passing_content('/status', self.query_string,
+                                          self._mk_response_test(['Running',
+                                                                 'Complete']))
+
+        # Stop the crawl.
+        self.response = request('POST', '/stop', self.query_string)
 
     def test_http_status(self):
         self.assertEqual(self.response['http_status'], '202 Accepted')
 
     def test_content(self):
-        self.assertIn('job_id', self.json_response)
-        self.assertEqual(int, type(self.json_response['job_id']))
+        self.get.wait_for_passing_content('/status', self.query_string,
+                                          self._mk_response_test(['Aborted']))
+
+        # Test that total results do not increase over 3 seconds.
+        response = request('GET', '/result', self.query_string)
+        json_response = json.loads(response['content'].decode())
+        len0 = len(json_response)
+        time.sleep(3)
+        response = request('GET', '/result', self.query_string)
+        json_response = json.loads(response['content'].decode())
+        len1 = len(json_response)
+        self.assertEqual(len0, len1)
 
 
 if __name__ == '__main__':
     #TODO:Test for bad request, length requered, etc.
     disallowed_methods = {'get': ('stop',),
-                          'post': ('status', 'result')} #TODO:Add to this
+                          'post': ('status', 'result'),
+                          'delete': ('crawl', 'stop', 'status')}
     tests = [CrawlTarget, CrawlGet, CrawlPost, StatusGetByJobId, StatusGetByUrl,
-             ResultGetByUrl, ResultGetByJobId, StopPost] + \
+             ResultGetByUrl, ResultGetByJobId, ResultDelete, StopPost] + \
              generate_disallowed_method_tests(disallowed_methods)
     load = [unittest.TestLoader().loadTestsFromTestCase(test) for test in tests]
     suite = unittest.TestSuite(load)
