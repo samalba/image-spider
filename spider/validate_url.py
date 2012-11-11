@@ -23,7 +23,7 @@ def validate_url(url, parent_url='http:'):
 
     parsed_url = urlparse(url)
 
-    if '/' == parsed_url.path[0]:
+    if 0 < len(parsed_url.path) and '/' == parsed_url.path[0]:
         url = urldefrag(urljoin(parent_url, url))[0]
 
     elif not parsed_url.scheme:
