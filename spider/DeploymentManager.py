@@ -173,6 +173,8 @@ class DeploymentManager:
         """
 
         if data.job_is_aborted(job_id):
+            self._active = False
+            self._queue = []
             return
 
         self._active = True
@@ -212,6 +214,7 @@ class DeploymentManager:
 
         if data.job_is_aborted(job_id):
             self._active = False
+            self._queue = []
         else:
             if len(self._queue):
                 time.sleep(self.delay)
