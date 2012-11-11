@@ -8,13 +8,14 @@ from view import view
 
 class status:
 
+    """
+    Status provides information about webpages we have been asked to crawl.
+    """
+
     def __init__(self):
         self.jobs_model = models.jobs()
         self.webpages_model = models.webpages()
 
-    """
-    Status provides information about webpages we have been asked to crawl.
-    """
 
     def get(self, query=None):
 
