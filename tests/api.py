@@ -4,7 +4,8 @@
 """
 There is a script in dev_scripts called serve_crawl_target.py. It is expected to
 be running prior to running these tests, in order to provide stable and
-predictable results.
+predictable results. It's also advised to run the spider with CRAWL_DELAY=0, or
+to deploy multiple spiders, in order to avoid timeouts.
 """
 
 import json
