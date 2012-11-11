@@ -1,6 +1,7 @@
 # -*- coding: ascii -*-
 
 from urllib.request import urlparse
+from urllib.parse import urljoin, urldefrag
 
 def validate_url(url, parent_url='http:'):
 
@@ -22,11 +23,16 @@ def validate_url(url, parent_url='http:'):
 
     parsed_url = urlparse(url)
 
-    if not parsed_url.scheme:
+    if '/' == parsed_url.path[0]:
+        url = urldefrag(urljoin(parent_url, url))[0]
+
+    elif not parsed_url.scheme:
         parent_scheme = urlparse(parent_url).scheme or 'http'
         url = parent_scheme + ':' + url
 
+    parsed_url = urlparse(url)
+
     valid = parsed_url.scheme in ('http', 'https', '') and \
-            parsed_url.netloc
+            bool(parsed_url.netloc)
 
     return {'valid': valid, 'url': url}
