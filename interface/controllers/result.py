@@ -29,10 +29,10 @@ class result:
         Returns: JSON list of URLs referencing found image files.
         """
 
-        if not query['job_id'] and not 'url' in query:
+        if not 'job_id' in query and not 'url' in query:
             return http_error('400 Bad Request')
 
-        if query['job_id']:
+        if 'job_id' in query:
             images = self.images_model.get_by_job_id(query['job_id'])
         else:
             images = self.images_model.get_by_url(query['url'])
