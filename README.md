@@ -66,14 +66,11 @@ Shortcomings:
 
 Possible Improvements:
 
-* See the following TODO list for starters. I'll add more here as I think of it.
-
 * It would be nice to have a /jobs resource to GET a list of all jobs.
 
 TODO:
 
 * Test coverage is incomplete.
-* Aborted jobs are not restarted.
 
 Documentation
 =============

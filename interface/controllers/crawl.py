@@ -56,6 +56,10 @@ class crawl:
         except KeyError:
             depth = 2
 
+        # Register all URLs with this job even if their results are cached.
+        # This allows jobs to be stopped and resumed.
+        self.webpages_model.register_job(self.job_id, urls)
+
         # Iterate through a copy of urls, since items may be removed from it.
         for url in urls[:]:
             status = self.webpages_model.get_status(url)
@@ -71,7 +75,6 @@ class crawl:
                 if 900 > td.total_seconds() and depth <= webpage_info['depth']:
                     urls.remove(url)
 
-        self.webpages_model.register_job(self.job_id, urls)
         self.webpages_model.add(urls, depth=depth)
         self.spiders_model.deploy(self.job_id)
 
