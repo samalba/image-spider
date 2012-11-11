@@ -151,7 +151,8 @@ Resource: /result
 
 * Description: Delete the result set for the specified URL, including any
                associated images, any descendant children URLs, and any images
-               associated with them.
+               associated with them. Note: If any jobs are currently crawling
+               those URLs, they will be aborted.
 * QueryString options:
     * `url`: string url.
 * Returns:

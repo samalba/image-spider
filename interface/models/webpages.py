@@ -1,8 +1,14 @@
 # -*- coding: ascii -*-
 
 from . DataModel import DataModel
+from . import spiders
 
 class webpages(DataModel):
+
+    def __init__(self):
+        self.spiders_model = spiders.spiders()
+        super(webpages, self).__init__()
+
 
     def add(self, child_urls, parent_url=None, depth=2):
 
@@ -118,7 +124,12 @@ class webpages(DataModel):
         Returns: boolean success value.
         """
 
-        self.redis.delete((url, 'reg' + url))
+        registration = 'reg:' + url
+        job_id = self.redis.rpop(registration)
+        while job_id:
+            self.spiders_model.stop(job_id)
+            job_id = self.redis.rpop(registration)
+        self.redis.delete((url, registration))
         webpage_id = self.get_webpage_info(url)[0]
         if webpage_id:
             delete_tree = self.pg.proc('delete_tree(integer)')
