@@ -138,16 +138,37 @@ class Get(unittest.TestCase):
     """
 
     def get_response(self, resource, query_string):
-        self.response = request('GET', resource, query_string)
-        attempts = 50
-        while '404 Not Found' == self.response['http_status'] and attempts:
-            attempts -= 1
+
+        """
+        GET a response from a resource.
+
+        Arguments:
+            resource: string resource to GET.
+            query_string: string query-string.
+
+        Returns: tuple (dict request() response, dict json_response content).
+        """
+
+        response = request('GET', resource, query_string)
+        is_404 = lambda: '404 Not Found' == response['http_status']
+
+        for i in range(50):
+
+            if not is_404():
+                break
+
             time.sleep(1)
-            self.response = request('GET', resource, query_string)
-        self.json_response = json.loads(self.response['content'].decode())
+
+            response = request('GET', resource, query_string)
+
+        if is_404():
+            self.fail('Response was 404 Not Found for GET ' + resource + \
+                      '?' + query_string)
+
+        return response, json.loads(response['content'].decode())
 
 
-    def wait_for_passing_response(self, resource, query_string, response_test):
+    def wait_for_passing_content(self, resource, query_string, response_test):
 
         """
         Wait until we have a passing response if we're testing for content.
@@ -160,12 +181,23 @@ class Get(unittest.TestCase):
         Returns: None
         """
 
-        if 'test_content' == self.id().rpartition('.')[2]:
+        test_name = self.id().rpartition('.')[2]
+        # We accept tests named "test_content" for those inheriting from Get or
+        # "runTest" for those instantiating it for use in setUp.
+        if 'test_content' == test_name or 'runTest' == test_name:
+
             for i in range(50):
+
+                response, json_response = self.get_response(resource,
+                                                           query_string)
+                self.response = response
+                self.json_response = json_response
+
                 if response_test():
                     break
+
                 time.sleep(1)
-                self.get_response(resource, query_string)
+
             if not response_test():
                 self.fail('response_test never passed.')
 
@@ -186,8 +218,9 @@ class Get(unittest.TestCase):
         self.response = initiate_crawl()[1]
         json_response = json.loads(self.response['content'].decode())
         query_string = 'job_id=' + str(json_response['job_id'])
-        self.get_response(resource, query_string)
-        self.wait_for_passing_response(resource, query_string, response_test)
+        self.response, self.json_response = self.get_response(resource,
+                                                              query_string)
+        self.wait_for_passing_content(resource, query_string, response_test)
 
 
     def setUp_for_GetByUrl(self, resource, response_test):
@@ -206,8 +239,9 @@ class Get(unittest.TestCase):
         urls, self.response = initiate_crawl()
         json_response = json.loads(self.response['content'].decode())
         query_string = 'url=' + urls[0]
-        self.get_response(resource, query_string)
-        self.wait_for_passing_response(resource, query_string, response_test)
+        self.response, self.json_response = self.get_response(resource,
+                                                              query_string)
+        self.wait_for_passing_content(resource, query_string, response_test)
 
 
 class CrawlTarget(unittest.TestCase):
@@ -251,7 +285,7 @@ class StatusGet(Get):
     def test_http_status(self):
         self.assertEqual(self.response['http_status'], '200 OK')
 
-    def _sub_job_status(self, job_status):
+    def _test_job_status(self, job_status):
         self.assertIn('current_depth', job_status)
         self.assertEqual(int, type(job_status['current_depth']))
         self.assertIn('depth_percent_complete', job_status)
@@ -280,12 +314,12 @@ class StatusGet(Get):
         test_case = self.id().split('.')[1]
         if 'StatusGetByJobId' == test_case:
             self.assertEqual(dict, type(job_status))
-            self._sub_job_status(job_status)
+            self._test_job_status(job_status)
         elif 'StatusGetByUrl' == test_case:
             self.assertEqual(list, type(job_status))
             self.assertGreater(len(job_status), 0)
             for status in job_status:
-                self._sub_job_status(status)
+                self._test_job_status(status)
 
 
 class StatusGetByUrl(StatusGet):
