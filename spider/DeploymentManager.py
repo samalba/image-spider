@@ -199,8 +199,10 @@ class DeploymentManager:
 
             # Database latency means depth is occasionally still unavailable.
             if not webpage_info['depth']:
-                data.redis.set(url, 'ready')
-                self._queue.append(url)
+                # Child URLs with no job_id and no depth have been deleted.
+                if bool(data.redis.llen('reg:' + url)):
+                    data.redis.set(url, 'ready')
+                    self._queue.append(url)
                 continue
 
             depth = webpage_info['depth'] - 1
@@ -208,7 +210,9 @@ class DeploymentManager:
             self._fetch_and_parse(job_id, url, depth)
             time.sleep(self.delay)
 
-        if not data.job_is_aborted(job_id):
+        if data.job_is_aborted(job_id):
+            self._active = False
+        else:
             if len(self._queue):
                 time.sleep(self.delay)
                 self._deploy(job_id)
