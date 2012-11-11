@@ -13,8 +13,8 @@ class result:
     """
 
     def __init__(self):
-        self.images_model = models.images()
-        self.webpages_model = models.webpages()
+        self.images_model = models.Images()
+        self.webpages_model = models.Webpages()
 
 
     def get(self, query=None):

@@ -4,7 +4,7 @@
 Models must be imported here in order to be made available to the application.
 """
 
-from . images import images
-from . jobs import jobs
-from . webpages import webpages
-from . spiders import spiders
+from . Images import Images
+from . Jobs import Jobs
+from . Webpages import Webpages
+from . Spiders import Spiders

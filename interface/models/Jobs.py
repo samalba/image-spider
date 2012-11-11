@@ -3,7 +3,7 @@
 from . DataModel import DataModel
 import pickle
 
-class jobs(DataModel):
+class Jobs(DataModel):
 
     def get_id(self):
 

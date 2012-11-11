@@ -1,13 +1,13 @@
 # -*- coding: ascii -*-
 
 from . DataModel import DataModel
-from . import spiders
+from . import Spiders
 
-class webpages(DataModel):
+class Webpages(DataModel):
 
     def __init__(self):
-        self.spiders_model = spiders.spiders()
-        super(webpages, self).__init__()
+        self.spiders_model = Spiders.Spiders()
+        super(Webpages, self).__init__()
 
 
     def add(self, child_urls, parent_url=None, depth=2):

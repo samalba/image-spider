@@ -2,7 +2,7 @@
 
 from . DataModel import DataModel
 
-class images(DataModel):
+class Images(DataModel):
 
     """
     This model represents image-URLs found when crawling.

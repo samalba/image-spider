@@ -15,9 +15,9 @@ class crawl:
     """
 
     def __init__(self):
-        self.webpages_model = models.webpages()
-        self.spiders_model = models.spiders()
-        jobs_model = models.jobs()
+        self.webpages_model = models.Webpages()
+        self.spiders_model = models.Spiders()
+        jobs_model = models.Jobs()
         self.job_id = jobs_model.get_id()
 
 

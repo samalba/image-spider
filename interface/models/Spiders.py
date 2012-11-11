@@ -3,7 +3,7 @@
 from . DataModel import DataModel
 import pickle
 
-class spiders(DataModel):
+class Spiders(DataModel):
 
     """
     This data model provides communication with the spiders, who are deployed as

@@ -13,8 +13,8 @@ class status:
     """
 
     def __init__(self):
-        self.jobs_model = models.jobs()
-        self.webpages_model = models.webpages()
+        self.jobs_model = models.Jobs()
+        self.webpages_model = models.Webpages()
 
 
     def get(self, query=None):

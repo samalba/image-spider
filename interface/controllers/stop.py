@@ -12,8 +12,8 @@ class stop:
     """
 
     def __init__(self):
-        self.spiders_model = models.spiders()
-        self.jobs_model = models.jobs()
+        self.spiders_model = models.Spiders()
+        self.jobs_model = models.Jobs()
 
 
     def post(self, query, postdata):
