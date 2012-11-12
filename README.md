@@ -26,10 +26,8 @@ Some general notes on the architecture:
   allows results for any given webpage from one job to also be applied to other
   jobs. The current expiry is 15 minutes, but this is arbitrary and adjustable.
 
-* This interface code is separate from the spider code. Multiple spiders can be
-  deployed simultaneously to share the workload. The spiders are written so as
-  to use dotCloud workers, as requested. Otherwise I would probably have chosen
-  to use a python pool of workers, to gain more programmatic control over them.
+* This interface code is separate from the spider code. The spider code is built
+  using shared disk architecture, deployable as dotCloud python-workers.
 
 * REST methods correspond to controller methods.
 
