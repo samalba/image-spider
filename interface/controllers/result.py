@@ -32,7 +32,7 @@ class result:
         if not 'job_id' in query and not 'url' in query:
             return http_error('400 Bad Request')
 
-        if 'job_id' in query:
+        if int == type(query['job_id']):
             images = self.images_model.get_by_job_id(query['job_id'])
         else:
             images = self.images_model.get_by_url(query['url'])
